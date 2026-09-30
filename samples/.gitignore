@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/Generated/
+**/out/
+**/native/build/
+ImageEffects/Tone/native/
+ImageEffects/Tone/dependencies/
+SharedFoundation/Creator/dependencies/
+SharedFoundation/Mutator/dependencies/

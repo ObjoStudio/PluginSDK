@@ -1,0 +1,10 @@
+{
+  "assembly": "bin/Release/net10.0/FirstMaths.dll",
+  "xmlDocumentation": "bin/Release/net10.0/FirstMaths.xml",
+  "registration": "Generated/ObjoRegistration.g.cs",
+  "apiMetadata": "Generated/objo-api.json",
+  "output": "out/org.example.firstmaths-1.0.0.objopackage",
+  "hosts": ["desktop", "commandLine", "web", "worker"],
+  "authors": ["Example Author"],
+  "licenceFile": { "path": "licences/LICENSE", "file": "LICENSE" }
+}

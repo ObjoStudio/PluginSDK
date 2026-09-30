@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Acme.Image.Tone</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Objo.Runtime.Abstractions">
+      <HintPath>$(OBJO_PLUGIN_SDK_ROOT)/lib/Objo.Runtime.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Acme.Image.Foundation">
+      <HintPath>../Foundation/bin/Release/net10.0/Acme.Image.Foundation.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Target Name="RequirePluginSdk" BeforeTargets="ResolveReferences"
+          Condition="'$(OBJO_PLUGIN_SDK_ROOT)' == ''">
+    <Error Text="Set OBJO_PLUGIN_SDK_ROOT to the extracted Objo Plugin SDK directory." />
+  </Target>
+</Project>

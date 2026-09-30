@@ -1,0 +1,9 @@
+{
+  "assembly": "bin/Release/net10.0/Acme.Image.Foundation.dll",
+  "xmlDocumentation": "bin/Release/net10.0/Acme.Image.Foundation.xml",
+  "output": "out/acme.image.foundation-1.0.0.objopackage",
+  "hosts": ["desktop", "commandLine", "web", "worker"],
+  "authors": ["Objo contributors"],
+  "sharedEntry": true,
+  "licenceFile": { "path": "licences/LICENSE", "file": "LICENSE" }
+}

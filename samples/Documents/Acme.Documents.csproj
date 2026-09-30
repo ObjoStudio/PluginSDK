@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Acme.Documents</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Objo.Runtime.Abstractions">
+      <HintPath>$(OBJO_PLUGIN_SDK_ROOT)/lib/Objo.Runtime.Abstractions.dll</HintPath>
+    </Reference>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
+  </ItemGroup>
+  <Target Name="RequirePluginSdk" BeforeTargets="ResolveReferences"
+          Condition="'$(OBJO_PLUGIN_SDK_ROOT)' == ''">
+    <Error Text="Set OBJO_PLUGIN_SDK_ROOT to the extracted Objo Plugin SDK directory." />
+  </Target>
+</Project>

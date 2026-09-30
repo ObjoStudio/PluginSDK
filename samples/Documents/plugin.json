@@ -1,0 +1,16 @@
+{
+  "assembly": "bin/Release/net10.0/Acme.Documents.dll",
+  "xmlDocumentation": "bin/Release/net10.0/Acme.Documents.xml",
+  "output": "out/acme.documents-1.0.0.objopackage",
+  "hosts": ["desktop", "commandLine", "web", "worker"],
+  "authors": ["Objo contributors"],
+  "managed": [
+    "bin/Release/net10.0/DocumentFormat.OpenXml.dll",
+    "bin/Release/net10.0/DocumentFormat.OpenXml.Framework.dll",
+    "bin/Release/net10.0/System.IO.Packaging.dll"
+  ],
+  "licenceFile": { "path": "licences/LICENSE", "file": "LICENSE" },
+  "data": [
+    { "path": "licences/THIRD-PARTY-NOTICES.txt", "file": "THIRD-PARTY-NOTICES.txt" }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "assembly": "bin/Release/net10.0/Acme.Database.dll",
+  "xmlDocumentation": "bin/Release/net10.0/Acme.Database.xml",
+  "output": "out/acme.database-1.0.0.objopackage",
+  "hosts": ["desktop", "commandLine", "web", "worker"],
+  "authors": ["Objo contributors"],
+  "managed": [
+    "bin/Release/net10.0/Microsoft.Data.Sqlite.dll",
+    "bin/Release/net10.0/SQLitePCLRaw.core.dll",
+    "bin/Release/net10.0/SQLitePCLRaw.provider.e_sqlite3.dll",
+    "bin/Release/net10.0/SQLitePCLRaw.batteries_v2.dll"
+  ],
+  "native": [
+    { "rid": "osx-arm64", "file": "bin/Release/net10.0/runtimes/osx-arm64/native/libe_sqlite3.dylib" },
+    { "rid": "osx-x64", "file": "bin/Release/net10.0/runtimes/osx-x64/native/libe_sqlite3.dylib" },
+    { "rid": "win-x64", "file": "bin/Release/net10.0/runtimes/win-x64/native/e_sqlite3.dll" },
+    { "rid": "win-arm64", "file": "bin/Release/net10.0/runtimes/win-arm64/native/e_sqlite3.dll" },
+    { "rid": "linux-x64", "file": "bin/Release/net10.0/runtimes/linux-x64/native/libe_sqlite3.so" },
+    { "rid": "linux-arm64", "file": "bin/Release/net10.0/runtimes/linux-arm64/native/libe_sqlite3.so" }
+  ],
+  "licenceFile": { "path": "licences/LICENSE", "file": "LICENSE" },
+  "data": [
+    { "path": "licences/THIRD-PARTY-NOTICES.txt", "file": "THIRD-PARTY-NOTICES.txt" }
+  ]
+}

@@ -1,0 +1,7 @@
+This sample builds against Microsoft.Data.Sqlite 10.0.12 (MIT) and
+SQLitePCLRaw.bundle_e_sqlite3 3.0.5 (Apache-2.0). The latter carries the
+e_sqlite3 native binaries and its transitive managed packages. Review all
+transitive package notices before redistributing a modified package.
+
+Microsoft.Data.Sqlite: https://www.nuget.org/packages/Microsoft.Data.Sqlite/10.0.12
+SQLitePCLRaw.bundle_e_sqlite3: https://www.nuget.org/packages/SQLitePCLRaw.bundle_e_sqlite3/3.0.5

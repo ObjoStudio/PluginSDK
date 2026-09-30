@@ -1,0 +1,9 @@
+{
+  "assembly": "bin/Release/net10.0/Acme.Creator.dll",
+  "xmlDocumentation": "bin/Release/net10.0/Acme.Creator.xml",
+  "output": "out/acme.creator-1.0.0.objopackage",
+  "hosts": ["desktop", "commandLine", "web", "worker"],
+  "authors": ["Objo contributors"],
+  "dependencies": ["dependencies/acme.foundation-1.0.0.objopackage"],
+  "licenceFile": { "path": "licences/LICENSE", "file": "LICENSE" }
+}

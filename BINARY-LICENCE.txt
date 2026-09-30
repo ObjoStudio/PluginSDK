@@ -1,0 +1,13 @@
+Objo Plugin SDK Binary Licence
+
+Copyright (c) 2026 Objo Studio. All rights reserved.
+
+You may download, copy and use unmodified binaries in the tool/ and lib/
+directories to develop and package plugins for Objo. You may distribute plugins
+you build with the SDK under terms of your choice. You may also redistribute an
+unmodified SDK binary when it is required inside an application built with Objo.
+
+No permission is granted to modify or redistribute the SDK binaries as a
+standalone SDK, or to use Objo Studio trademarks. The template and samples are
+governed by their own licence files. Third-party components retain their own
+terms.

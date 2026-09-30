@@ -1,0 +1,16 @@
+{
+  "assembly": "bin/Release/net10.0/Acme.Image.Tone.dll",
+  "xmlDocumentation": "bin/Release/net10.0/Acme.Image.Tone.xml",
+  "output": "out/acme.image.tone-1.0.0.objopackage",
+  "hosts": ["desktop", "commandLine", "web", "worker"],
+  "authors": ["Objo contributors"],
+  "dependencies": ["dependencies/acme.image.foundation-1.0.0.objopackage"],
+  "native": [
+    { "rid": "osx-arm64", "file": "native/osx-arm64/libacme_core.dylib" },
+    { "rid": "osx-arm64", "file": "native/osx-arm64/libacme_effects.dylib" }
+  ],
+  "licenceFile": { "path": "licences/LICENSE", "file": "LICENSE" },
+  "data": [
+    { "path": "licences/STB-LICENSE", "file": "STB-LICENSE" }
+  ]
+}

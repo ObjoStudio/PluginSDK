@@ -1,0 +1,73 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "objo-plugin/1.0.0": {
+        "dependencies": {
+          "Objo.Runtime.Abstractions": "1.0.0",
+          "Objo.Runtime.Generator": "1.0.0",
+          "Objo.Runtime.Packaging": "1.0.0"
+        },
+        "runtime": {
+          "objo-plugin.dll": {}
+        }
+      },
+      "Objo.Runtime.Abstractions/1.0.0": {
+        "runtime": {
+          "Objo.Runtime.Abstractions.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Objo.Runtime.Generator/1.0.0": {
+        "dependencies": {
+          "Objo.Runtime.Abstractions": "1.0.0"
+        },
+        "runtime": {
+          "Objo.Runtime.Generator.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Objo.Runtime.Packaging/1.0.0": {
+        "dependencies": {
+          "Objo.Runtime.Abstractions": "1.0.0"
+        },
+        "runtime": {
+          "Objo.Runtime.Packaging.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "objo-plugin/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Objo.Runtime.Abstractions/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Objo.Runtime.Generator/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Objo.Runtime.Packaging/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

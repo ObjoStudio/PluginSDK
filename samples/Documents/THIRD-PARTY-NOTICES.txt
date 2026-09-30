@@ -1,0 +1,5 @@
+This sample builds against DocumentFormat.OpenXml 3.5.1 (MIT) and its
+transitive managed dependencies. Review their package notices before
+redistributing a modified package.
+
+DocumentFormat.OpenXml: https://www.nuget.org/packages/DocumentFormat.OpenXml/3.5.1
