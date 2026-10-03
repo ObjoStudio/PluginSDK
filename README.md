@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.0.1
+# Objo Plugin SDK 1.0.2
 
-Download the `plugin-sdk-1.0.1.zip` release from
+Download the `plugin-sdk-1.0.2.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
@@ -27,7 +27,9 @@ dotnet "$OBJO_PLUGIN_SDK_ROOT/tool/objo-plugin.dll" inspect out/org.example.firs
 ```
 
 The `out/` package is the one file to give consumers. Replace the template
-identity and licence before distributing a new plugin. `plugin.json` paths
+identity and licence before distributing a new plugin, and root the visible
+namespace in your own brand or domain: the `Objo` namespace is reserved for
+use by Objo Studio / Pettet Industries. `plugin.json` paths
 are relative to that file and must stay within its directory. The supplied
 native image sample currently declares macOS arm64 assets only; build and test
 additional RIDs before adding them to its package input.
@@ -36,8 +38,11 @@ additional RIDs before adding them to its package input.
 
 Returning `ObjoPictureFrame` publishes raw pixels straight to Objo's `Picture`
 type with no image-file encode or decode step — the natural way to expose a
-renderer, camera or emulator framebuffer. Describe the layout, wrap the bytes,
-and pair the buffer with a scale factor (use `1` for unscaled pixels):
+renderer, camera or emulator framebuffer. For tightly packed 8-bit RGB pixels,
+use the convenience factory:
+
+The factories below were added in SDK distribution 1.0.2. The SDK contract
+version remains `1.0.0`.
 
 ```csharp
 using Objo.Runtime.Abstractions;
@@ -49,19 +54,32 @@ public sealed class Screen
     private readonly byte[] _pixels = new byte[160 * 144 * 3];
 
     /// <summary>Returns the current frame as a Picture.</summary>
-    public ObjoPictureFrame FramePicture()
-    {
-        var descriptor = new ObjoImageDescriptor(160, 144, 160 * 3,
-            ObjoPixelChannels.Rgb, 8, ObjoRowOrder.TopDown,
-            ObjoAlphaMode.None, ObjoColourSpace.Srgb, mutable: false);
-        return new ObjoPictureFrame(new ObjoImageBuffer(descriptor, _pixels), 1.0);
-    }
+    public ObjoPictureFrame FramePicture() =>
+        ObjoPictureFrame.FromRgb(160, 144, _pixels);
 }
 ```
 
+`FromRgb`, `FromRgba` and `FromGrey` each own one immutable copy of the input
+array, so you can reuse your framebuffer after the call. They declare top-down
+sRGB pixels without row padding. `FromRgba` requires premultiplied alpha and
+rejects colour components greater than alpha; convert straight alpha first.
+The optional `scaleFactor` defaults to `1.0`; pass `2.0` for pixels rendered at
+twice the logical resolution. Dispose the returned frame's `Image` when it is
+no longer needed.
+
+For other layouts, construct a descriptor, buffer and frame explicitly.
 Picture export accepts 8-bit Grey, RGB or premultiplied RGBA, top-down or
 bottom-up, without an ICC profile. Objo code calls `FramePicture()` and receives
 an ordinary `Picture`, ready for a Canvas or ImageViewer.
+
+### Runtime compatibility
+
+Plugins calling these factories need a Studio/runtime build that includes
+them. This support is scheduled for Objo Studio 26.10.1; the current stable
+26.9.4 release does not include it. Remote execution also needs a matching
+Remote Debugger. Updating the SDK alone does not update Studio or application
+hosts. For older compatible plugin runtimes, construct the descriptor, buffer
+and frame explicitly instead of calling the factories.
 
 ## Where the documentation lives
 

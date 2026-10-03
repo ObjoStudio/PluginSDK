@@ -305,6 +305,11 @@
         <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidHash">
             <summary>A SHA-256 hash string is malformed (wrong length or non-hexadecimal).</summary>
         </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.ReservedNamespace">
+            <summary>The package claims the reserved Objo namespace without an official
+            dev.objo.* package identity; emitted at manifest and API metadata parse
+            and at compiler catalogue binding.</summary>
+        </member>
         <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedManifestSchema">
             <summary>The manifest schema discriminator is missing or unsupported.</summary>
         </member>
@@ -829,8 +834,8 @@
         <member name="T:Objo.Runtime.Abstractions.ObjoPictureFrame">
             <summary>
             A host Picture's rendered pixels at a plugin call boundary. The generator
-            maps this SDK marker to Objo's built-in Picture type; only a host Picture
-            adapter may create a value from an Objo Picture or publish one back to it.
+            maps this SDK marker to Objo's built-in Picture type. Plugins may create
+            frames from raw pixels; host Picture adapters import and export Objo Pictures.
             Pixel dimensions come from Image.Descriptor. Logical dimensions are pixel
             dimensions divided by ScaleFactor, matching Picture's 96-DPI base size.
             </summary>
@@ -839,7 +844,7 @@
             <summary>The owned image carrying this frame's pixel bytes.</summary>
         </member>
         <member name="P:Objo.Runtime.Abstractions.ObjoPictureFrame.ScaleFactor">
-            <summary>Host rendering scale: pixel dimensions per logical dimension, between 1 and 8.</summary>
+            <summary>Host rendering scale: pixel dimensions per logical dimension, greater than zero and at most 8.</summary>
         </member>
         <member name="P:Objo.Runtime.Abstractions.ObjoPictureFrame.LogicalWidth">
             <summary>Pixel width divided by the scale factor.</summary>
@@ -851,6 +856,40 @@
             <summary>Pairs an owned image with the host rendering scale to publish as a Picture.</summary>
             <param name="image">The frame's owned pixel buffer.</param>
             <param name="scaleFactor">Finite scale greater than zero and at most 8; use 1 for unscaled pixels.</param>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPictureFrame.FromRgb(System.Int32,System.Int32,System.Byte[],System.Double)">
+            <summary>Creates a Picture frame from tightly packed top-down 8-bit sRGB pixels without alpha.</summary>
+            <param name="width">Positive pixel width.</param>
+            <param name="height">Positive pixel height.</param>
+            <param name="bytes">Exactly width times height times 3 bytes, ordered red, green, blue.</param>
+            <param name="scaleFactor">Finite scale greater than zero and at most 8; defaults to 1 for unscaled pixels.</param>
+            <returns>A frame owning one immutable copy of the pixels. Dispose its Image when no longer needed.</returns>
+            <exception cref="T:System.ArgumentNullException">The pixel array is null.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Dimensions are non-positive, exceed the 256 MiB buffer limit, or the scale is invalid.</exception>
+            <exception cref="T:System.ArgumentException">The pixel array length does not match the packed layout.</exception>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPictureFrame.FromRgba(System.Int32,System.Int32,System.Byte[],System.Double)">
+            <summary>Creates a Picture frame from tightly packed top-down 8-bit premultiplied sRGB RGBA pixels.</summary>
+            <param name="width">Positive pixel width.</param>
+            <param name="height">Positive pixel height.</param>
+            <param name="bytes">Exactly width times height times 4 bytes, ordered red, green, blue, alpha. Each colour component must be at most alpha.</param>
+            <param name="scaleFactor">Finite scale greater than zero and at most 8; defaults to 1 for unscaled pixels.</param>
+            <returns>A frame owning one immutable copy of the pixels. Dispose its Image when no longer needed.</returns>
+            <remarks>Straight alpha is unsupported. Premultiply colour components before calling this factory.</remarks>
+            <exception cref="T:System.ArgumentNullException">The pixel array is null.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Dimensions are non-positive, exceed the 256 MiB buffer limit, or the scale is invalid.</exception>
+            <exception cref="T:System.ArgumentException">The pixel array length does not match the packed layout or a colour component exceeds alpha.</exception>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPictureFrame.FromGrey(System.Int32,System.Int32,System.Byte[],System.Double)">
+            <summary>Creates a Picture frame from tightly packed top-down 8-bit sRGB grey pixels without alpha.</summary>
+            <param name="width">Positive pixel width.</param>
+            <param name="height">Positive pixel height.</param>
+            <param name="bytes">Exactly width times height bytes, one grey component per pixel.</param>
+            <param name="scaleFactor">Finite scale greater than zero and at most 8; defaults to 1 for unscaled pixels.</param>
+            <returns>A frame owning one immutable copy of the pixels. Dispose its Image when no longer needed.</returns>
+            <exception cref="T:System.ArgumentNullException">The pixel array is null.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Dimensions are non-positive, exceed the 256 MiB buffer limit, or the scale is invalid.</exception>
+            <exception cref="T:System.ArgumentException">The pixel array length does not match the packed layout.</exception>
         </member>
         <member name="T:Objo.Runtime.Abstractions.ObjoPicturePixels">
             <summary>
@@ -1156,6 +1195,38 @@
         </member>
         <member name="M:Objo.Runtime.Abstractions.PluginModuleExecution.WasExecuted(System.String)">
             <summary>True when the assembly at this location has executed code in this process.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginNamespaces">
+            <summary>
+            Plugin namespace policy. The first namespace segment "Objo" is reserved
+            for packages published by Objo Studio / Pettet Industries; third-party
+            packages root their public namespace in their own brand or domain. Official
+            first-party packages carry a dev.objo.* package identifier and may claim
+            the reserved namespace. This is namespace policy, not a trust boundary: the
+            archive format carries no signatures and the manifest publisher is never
+            verified.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginNamespaces.ReservedRoot">
+            <summary>The reserved namespace root, matched case-insensitively as a first segment.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginNamespaces.OfficialPackageIdPrefix">
+            <summary>The first identifier segments whose packages may claim the reserved namespace.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginNamespaces.IsReserved(System.String)">
+            <summary>True when the namespace's first segment is the reserved root, case-insensitively.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginNamespaces.IsOfficialPackageId(System.String)">
+            <summary>True when a package identifier belongs to Objo Studio / Pettet Industries
+            (its first segments are the official prefix). Package identifiers are lower-case
+            by contract, so segments compare ordinally.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginNamespaces.IsClaimableBy(System.String,System.String)">
+            <summary>The single policy decision: may this package claim this namespace?</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginNamespaces.DescribeReservation(System.String)">
+            <summary>The standard diagnostic message for a rejected namespace claim, shared by
+            every enforcement site so authors see one consistent wording.</summary>
         </member>
         <member name="T:Objo.Runtime.Abstractions.CanonicalObjectWriter">
             <summary>
