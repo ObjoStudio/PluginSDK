@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.0.2
+# Objo Plugin SDK 1.1.0
 
-Download the `plugin-sdk-1.0.2.zip` release from
+Download the `plugin-sdk-1.1.0.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
@@ -8,7 +8,7 @@ only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
 
 The distribution contains:
 
-- `tool/objo-plugin.dll`: generator, package builder and inspector.
+- `tool/objo-plugin.dll`: source builder, generator, package builder and inspector.
 - `lib/Objo.Runtime.Abstractions.dll` with its `.xml` IntelliSense
   documentation: the supported wrapper reference.
 - `template/FirstMaths`: first plugin with methods, property, typed event,
@@ -19,12 +19,18 @@ Set `OBJO_PLUGIN_SDK_ROOT` to the extracted distribution directory. From a
 copy of `template/FirstMaths`, run:
 
 ```sh
-dotnet build FirstMaths.csproj -c Release
-dotnet "$OBJO_PLUGIN_SDK_ROOT/tool/objo-plugin.dll" generate plugin.json
-dotnet build FirstMaths.csproj -c Release
-dotnet "$OBJO_PLUGIN_SDK_ROOT/tool/objo-plugin.dll" pack plugin.json
+dotnet "$OBJO_PLUGIN_SDK_ROOT/tool/objo-plugin.dll" build plugin.json
 dotnet "$OBJO_PLUGIN_SDK_ROOT/tool/objo-plugin.dll" inspect out/org.example.firstmaths-1.0.0.objopackage
 ```
+
+`build` runs the wrapper build, generation, rebuild and packing in order,
+streams each step's output, and stops with the step named if it fails. It uses
+Release unless `plugin.json` sets `configuration`. Set `project` to a relative
+`.csproj` path when needed; otherwise it finds the nearest directory containing
+one `.csproj`, starting beside `assembly` and walking up to `plugin.json`.
+Multiple projects in that directory require an explicit `project`. Keep
+`assembly` and `xmlDocumentation` aligned with the chosen configuration.
+The separate `generate` and `pack` commands remain available for custom workflows.
 
 The `out/` package is the one file to give consumers. Replace the template
 identity and licence before distributing a new plugin, and root the visible
