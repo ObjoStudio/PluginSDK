@@ -1,0 +1,1986 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Objo.Runtime.Abstractions</name>
+    </assembly>
+    <members>
+        <member name="T:Objo.Runtime.Abstractions.ObjoAsyncConcurrency">
+            <summary>
+            The per-receiver execution policy of an exported async member. The default
+            serial policy is the database-connection contract of the async
+            specification: admitted operations of one wrapper instance run in call
+            order, one at a time, and synchronous members of that instance conflict
+            with pending work. A vendor whose receiver is genuinely safe for
+            concurrent use declares the stronger contract explicitly.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoAsyncConcurrency.SerialPerInstance">
+            <summary>
+            Operations of one wrapper instance run in call order, one at a time;
+            a synchronous member call on that instance is rejected while its
+            operations are pending.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoAsyncConcurrency.Concurrent">
+            <summary>
+            Operations of one wrapper instance may run concurrently. The vendor
+            guarantees the receiver tolerates concurrent use; synchronous member
+            calls do not conflict with pending concurrent work.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoAsyncAttribute">
+            <summary>
+            Declares an exported method asynchronous. On a synchronous method (any
+            mappable return type, including void) the runtime runs the whole method
+            body off the VM thread through the host's bounded blocking-operation
+            scheduler — the blessed path for wrapping blocking providers. On a method
+            returning <c>Task</c>/<c>Task&lt;T&gt;</c> (already async by its return
+            type) the attribute only selects <see cref="P:Objo.Runtime.Abstractions.ObjoAsyncAttribute.Concurrency"/>.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoAsyncAttribute.Concurrency">
+            <summary>
+            The execution policy of this member's operations on one receiver
+            instance. <see cref="F:Objo.Runtime.Abstractions.ObjoAsyncConcurrency.SerialPerInstance"/> unless
+            the vendor declares a stronger concurrency contract.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoAsyncAttribute.#ctor">
+            <summary>Declares the default serial-per-instance execution policy.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoSafeWhilePendingAttribute">
+            <summary>
+            Opts an exported synchronous instance method out of the
+            pending-work-conflict rule: the member stays callable while async
+            operations are pending on the same receiver. This is the cancel-request
+            pattern — a wrapper's cancel member flips a vendor flag or token that
+            in-flight work observes cooperatively. Async members, shared members (no
+            receiver), the disposal member (disposal is rejected while serial work is
+            pending — cancel and Await first), properties, events and constructors
+            never carry it; the generator diagnoses such uses at authoring time.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoAsyncRunner">
+            <summary>
+            The host-owned scheduling channel handed to one admitted async operation's
+            start delegate. Generated adapters receive it from
+            <c>IPluginInvocation.BeginAsync</c>; a wrapper around a blocking provider
+            calls <see cref="M:Objo.Runtime.Abstractions.ObjoAsyncRunner.Run(System.Action)"/>/<see cref="M:Objo.Runtime.Abstractions.ObjoAsyncRunner.Run``1(System.Func{``0})"/> so the work
+            runs through the host's bounded scheduler instead of blocking the VM
+            thread. Constructed by the host runtime; the scheduling delegate throws the
+            documented saturation diagnostic when the host's queue is full.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoAsyncRunner.#ctor(System.Action{System.Action})">
+            <param name="schedule">
+            Schedules one action onto the host's blocking-operation scheduler (or
+            its ordinary-host fallback), or throws the documented saturation
+            diagnostic. Supplied by the host runtime.
+            </param>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoAsyncRunner.Run(System.Action)">
+            <summary>
+            Schedules one blocking action. The returned task completes with the
+            action's outcome; a scheduler refusal propagates as the documented
+            saturation exception.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoAsyncRunner.Run``1(System.Func{``0})">
+            <summary>
+            Schedules one blocking function. The returned task completes with the
+            function's result; a scheduler refusal propagates as the documented
+            saturation exception.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoPluginAttribute">
+            <summary>
+            Declares the assembly as an Objo plugin package. Applied once per wrapper
+            assembly at assembly level. The generator (part of the SDK tooling) reads
+            this attribute together with the exported types to produce API metadata,
+            registration code and the package manifest inputs.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.PackageId">
+            <summary>The package identifier: lower-case dot-separated segments.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.Version">
+            <summary>The exact SemVer 2.0 version of the package.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.Namespace">
+            <summary>The explicit public Objo namespace (root module) all exported types live under.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.DisplayName">
+            <summary>Human-readable display name; not part of package identity.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.Description">
+            <summary>Short description shown to users; not part of package identity.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.Publisher">
+            <summary>Declared publisher; displayed as declared, never verified as authenticated identity.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.Licence">
+            <summary>SPDX-style licence identifier or name, e.g. "MIT".</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPluginAttribute.ProjectUrl">
+            <summary>Project URL for documentation and support.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPluginAttribute.#ctor(System.String,System.String)">
+            <summary>Declares the package identity every generated artefact carries.</summary>
+            <param name="packageId">Reverse-DNS package identifier.</param>
+            <param name="version">Exact semantic version of this package build.</param>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoExportAttribute">
+            <summary>
+            Exports a C# class or enum to Objo. Public constructors, methods, properties and
+            events are exported unless ignored. Supported parameter, return and
+            property types are validated by the SDK generator; unsupported CLR
+            signatures produce authoring diagnostics instead of runtime surprises.
+            Nested types are not exportable.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoExportAttribute.Name">
+            <summary>Optional explicit Objo-visible name; defaults to the C# class name.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoExportAttribute.Description">
+            <summary>Optional explicit description; overrides the XML summary.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoExportAttribute.Deprecation">
+            <summary>Optional deprecation message for the whole type.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoIgnoreAttribute">
+            <summary>Excludes a public member (or constructor) from the exported API.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoDescriptionAttribute">
+            <summary>
+            Explicit author description for a member or parameter. Precedence over XML
+            documentation comments is fixed by the SDK generator: an explicit
+            <see cref="T:Objo.Runtime.Abstractions.ObjoDescriptionAttribute"/> overrides the XML summary.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoDescriptionAttribute.Text">
+            <summary>The explicit description text.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoDescriptionAttribute.#ctor(System.String)">
+            <summary>Records the description text that overrides any XML summary.</summary>
+            <param name="text">The description shown to Objo users.</param>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoEventAttribute">
+            <summary>
+            Marks a CLR event as a typed Objo notification event. Handlers are
+            void-returning; delivery preserves Objo event context (Me = event source,
+            Self = subscriber) and marshals arguments onto the owning VM.
+            Arbitrary CLR delegates and synchronous result-returning events from vendor
+            worker threads are outside the V1 contract and receive SDK diagnostics.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoEventAttribute.Name">
+            <summary>Optional explicit Objo-visible name; defaults to the C# event name.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoEventAttribute.Description">
+            <summary>Optional explicit description; overrides the XML summary.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoEventAttribute.Coalescing">
+            <summary>
+            The queueing policy. Terminal notifications (Completed-style) keep the
+            default <see cref="F:Objo.Runtime.Abstractions.ObjoEventCoalescing.None"/>: every raise is
+            delivered in order. Progress-style events declare
+            <see cref="F:Objo.Runtime.Abstractions.ObjoEventCoalescing.Latest"/>: pending raises of the same
+            source event coalesce to the newest arguments.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoEventAttribute.ParameterNames">
+            <summary>
+            The Objo-visible parameter names of the notification's arguments. The
+            SDK delegate shapes cannot know the author's naming, so authors declare
+            the names here once; the count must match the delegate's arity. When
+            omitted, the delegate's own argument names are used.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoEventAttribute.#ctor">
+            <summary>Declares in-order delivery with no coalescing.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.CanonicalJson">
+            <summary>
+            Produces the canonical JSON form used for every plugin contract hash:
+            UTF-8, no whitespace, object property names sorted by ordinal comparison,
+            integers in plain decimal form, strings escaped minimally (non-ASCII kept
+            as UTF-8), forward slashes unescaped. Floating-point numbers are rejected:
+            contract documents contain no fractional numbers. The form is part of the
+            compatibility baseline and must not change within a schema version.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.CanonicalJson.Canonicalise(System.String)">
+            <summary>
+            Parses and validates a JSON document, returning a canonical string.
+            Throws <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/> for invalid JSON, duplicate
+            property names, or fractional numbers.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.CanonicalJson.WriteCanonical(System.Text.Json.JsonElement)">
+            <summary>Writes an already validated element in canonical form.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.CanonicalJson.ParseStrict(System.String,System.Int64,System.String)">
+            <summary>
+            Parses a JSON document and rejects duplicate property names, returning
+            the root element of a document owned by the caller.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.Hashing">
+            <summary>
+            SHA-256 hashing helpers for canonical contract bytes and payload entries.
+            Hashes are rendered as lower-case hexadecimal.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.Hashing.Sha256Hex(System.ReadOnlySpan{System.Byte})">
+            <summary>Computes the SHA-256 of the bytes and returns lower-case hex.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.Hashing.Sha256Hex(System.String)">
+            <summary>Computes the SHA-256 of a string's UTF-8 bytes and returns lower-case hex.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.Hashing.Sha256Hex(System.IO.Stream)">
+            <summary>Computes the SHA-256 of a stream and returns lower-case hex.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.Hashing.IsValidSha256Hex(System.String)">
+            <summary>Returns true when the text is a 64-character lower-case hexadecimal SHA-256.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginDiagnosticSeverity">
+            <summary>Severity of a plugin contract diagnostic.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticSeverity.Info">
+            <summary>Informational; the operation can proceed.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticSeverity.Warning">
+            <summary>A warning; the operation can proceed but the condition is notable.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticSeverity.Error">
+            <summary>An error; the operation must not proceed.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginDiagnostic">
+            <summary>
+            A stable-coded diagnostic produced by plugin contract validation.
+            Codes are part of the compatibility baseline: their meaning must not change
+            within a schema version. New codes may be appended.
+            </summary>
+            <param name="Code">Stable diagnostic code, for example OBG0001.</param>
+            <param name="Severity">How severe the diagnostic is; errors fail generation or packaging.</param>
+            <param name="Message">Human-readable diagnostic message.</param>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginDiagnostic.#ctor(System.String,Objo.Runtime.Abstractions.PluginDiagnosticSeverity,System.String)">
+            <summary>
+            A stable-coded diagnostic produced by plugin contract validation.
+            Codes are part of the compatibility baseline: their meaning must not change
+            within a schema version. New codes may be appended.
+            </summary>
+            <param name="Code">Stable diagnostic code, for example OBG0001.</param>
+            <param name="Severity">How severe the diagnostic is; errors fail generation or packaging.</param>
+            <param name="Message">Human-readable diagnostic message.</param>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PluginDiagnostic.Code">
+            <summary>Stable diagnostic code, for example OBG0001.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PluginDiagnostic.Severity">
+            <summary>How severe the diagnostic is; errors fail generation or packaging.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PluginDiagnostic.Message">
+            <summary>Human-readable diagnostic message.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginDiagnostic.ToString">
+            <summary>Renders the diagnostic as "CODE: Message".</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginDiagnosticCodes">
+            <summary>
+            Stable diagnostic codes for the plugin package/API contracts.
+            Grouped by document: 0xxx identity, 1xxx package manifest, 2xxx API
+            metadata, 3xxx runtime descriptor, 4xxx solution lock, 5xxx app runtime,
+            6xxx package archive, 7xxx exact dependency graph, 8xxx compiler catalogue,
+            9xxx host loading.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidPackageId">
+            <summary>The package identifier is not lower-case dot-separated segments within limits.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidVersion">
+            <summary>The version is not a valid exact SemVer 2.0 version.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidHash">
+            <summary>A SHA-256 hash string is malformed (wrong length or non-hexadecimal).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedManifestSchema">
+            <summary>The manifest schema discriminator is missing or unsupported.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.MissingRequiredField">
+            <summary>A required manifest field is missing or has the wrong JSON type.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedCapability">
+            <summary>The manifest declares a capability this engine does not support.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedKind">
+            <summary>The manifest declares an unsupported package kind.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedHost">
+            <summary>The manifest declares an unsupported host availability value.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidDependency">
+            <summary>A declared dependency is malformed or exceeds limits.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidPayloadEntry">
+            <summary>A payload entry is malformed (unsafe path, duplicate, oversized or bad hash).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidManifestDocument">
+            <summary>The manifest document is not valid JSON, has duplicate property names or exceeds its size limit.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidDependencyArchive">
+            <summary>A declared dependency archive entry is malformed.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedApiSchema">
+            <summary>The API metadata schema discriminator is missing or unsupported.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.MissingApiField">
+            <summary>A required API metadata field is missing or has the wrong JSON type.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.DuplicateTypeName">
+            <summary>Two exported types collide case-insensitively.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.DuplicateMember">
+            <summary>Two exported members of one type collide case-insensitively by name and signature.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidMemberSignature">
+            <summary>A member signature or type reference in the metadata is malformed.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidApiDocument">
+            <summary>The API metadata document is not valid JSON, has duplicate property names or exceeds its size limit.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedRuntimeSchema">
+            <summary>The runtime descriptor schema discriminator is missing or unsupported.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.MissingRuntimeField">
+            <summary>A required runtime descriptor field is missing or has the wrong JSON type.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidAsset">
+            <summary>An asset entry in the runtime descriptor is malformed.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidRuntimeDocument">
+            <summary>The runtime descriptor document is not valid JSON, has duplicate property names or exceeds its size limit.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidRid">
+            <summary>A runtime identifier in the descriptor is malformed.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedLockSchema">
+            <summary>The solution lock schema discriminator is missing or unsupported.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.MissingLockField">
+            <summary>A required lock field is missing or has the wrong JSON type.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.LockOrderViolation">
+            <summary>The lock lists the same package ID twice or is not canonically ordered.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidLockEntry">
+            <summary>A lock entry is malformed (bad identity, hash, scope or edge).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidLockDocument">
+            <summary>The lock document is not valid JSON, has duplicate property names or exceeds its size limit.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UnsupportedAppRuntimeSchema">
+            <summary>The app runtime schema discriminator is missing or unsupported.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.MissingAppRuntimeField">
+            <summary>A required app runtime field is missing or has the wrong JSON type.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidStagedAsset">
+            <summary>A staged asset record in the app runtime manifest is malformed.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidAppRuntimeDocument">
+            <summary>The app runtime document is not valid JSON, has duplicate property names or exceeds its size limit.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidArchive">
+            <summary>The bytes are not a readable ZIP archive.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidArchiveEntry">
+            <summary>An archive entry name is unsafe: absolute, traversal, backslash, control characters or a directory entry.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.DuplicateArchiveEntry">
+            <summary>Two archive entries differ only by letter case.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.ArchiveEntryLink">
+            <summary>An archive entry is not a regular file (symlink, device, FIFO) or is encrypted.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.ArchiveCompressionBomb">
+            <summary>An archive entry expands beyond the compression-ratio or size limits; extraction is refused before any bytes are read.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.UndeclaredArchiveEntry">
+            <summary>The archive contains an entry that the manifest inventory does not declare.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.MissingArchiveEntry">
+            <summary>A declared payload entry, dependency archive or contract document is missing from the archive.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.PayloadHashMismatch">
+            <summary>Payload bytes do not match the declared size or SHA-256.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.ArchiveContractMismatch">
+            <summary>The manifest, API metadata and runtime descriptor disagree on identity, SDK version or API hash.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.ArchiveDocumentNotCanonical">
+            <summary>A contract document is not stored as canonical JSON bytes.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.ArchiveLimitExceeded">
+            <summary>An archive or whole import exceeds the entry-count or total-size limits.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.DependencyArchiveConflict">
+            <summary>The same package identity is supplied twice with different bytes, or a dependency archive claims the importing package's own identity.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidPayloadLayout">
+            <summary>A payload entry's role does not match its path layout (managed under runtimes/&lt;rid&gt;/managed/, native under a concrete RID's native directory).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.InvalidPackInput">
+            <summary>The pack input is inconsistent: duplicate paths, missing source files, unknown roles or mismatched identities.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.MissingDependency">
+            <summary>A declared exact dependency, or the requested root package, is not among the supplied archives.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.DependencyCycle">
+            <summary>The declared dependency graph contains a cycle; the diagnostic shows the dependency chain.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.DependencyVersionConflict">
+            <summary>Two packages in one closure require different exact versions of the same package ID.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.DependencyHashMismatch">
+            <summary>A supplied archive's bytes or API hash disagree with the exact archive/API hash declared for that dependency.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.GraphLimitExceeded">
+            <summary>The resolved graph exceeds the maximum number of packages.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.CatalogNameCollision">
+            <summary>An exported plugin type or enum name collides case-insensitively with a
+            built-in/host type, another package in the same graph, or a project-declared type.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.CatalogNamespaceMismatch">
+            <summary>An exported type or enum name is not declared under the package's public namespace.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.CatalogUnknownHost">
+            <summary>The requested target host profile is not a known V1 host.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.CatalogUnknownTypeReference">
+            <summary>A member's declared parameter or return type references a type unknown to
+            the host catalogue, language intrinsics and every package in the graph.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.CatalogMemberHostUnavailable">
+            <summary>Source code uses a plugin member whose declared hosts exclude the
+            compilation's target host profile.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostSdkNotSupported">
+            <summary>The app runtime manifest or a package requires a newer plugin SDK
+            than this host implements; the launch is refused.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostRidMismatch">
+            <summary>The app runtime manifest's runtime identifier does not match the
+            host process; no development-machine fallback is attempted.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostAssetMissing">
+            <summary>A staged asset referenced by the app runtime manifest is missing.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostAssetHashMismatch">
+            <summary>Staged asset bytes do not match the post-staging hash recorded in
+            the app runtime manifest.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostEntryMissing">
+            <summary>A package's managed entry assembly or registration entry type
+            cannot be found or loaded.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostRegistrationFailed">
+            <summary>The generated registration failed or declared a malformed
+            signature; the launch is refused before any VM mutation.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostNameCollision">
+            <summary>An exported plugin name collides case-insensitively with an
+            existing VM global (built-in or standard library) or another package in
+            the same application.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostMemberUnsupported">
+            <summary>The registration declares a member this host cannot honour in the
+            current SDK stage (for example a typed notification event declared
+            without its generated delivery bridge).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostPackageNotCompatible">
+            <summary>The package manifest does not declare support for the target host
+            profile; the build is refused.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostBufferUnavailable">
+            <summary>The host runtime provides no binary-buffer value bridge (no
+            MemoryBlock), so a plugin member that exchanges binary buffers cannot be
+            called in this host.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostObjectForeignRuntime">
+            <summary>A plugin object created under a different plugin runtime (another
+            VM load) was supplied to this call; objects never cross VMs.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostObjectDisposed">
+            <summary>The plugin object has been disposed; disposed wrappers reject
+            further member calls.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostAmbiguousConstructor">
+            <summary>Two constructors of one exported type map to the same runtime
+            argument-type signature (for example Integer and an exported enum) and
+            cannot be distinguished at runtime; the launch is refused.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostNativeLoadFailed">
+            <summary>A staged native library could not be loaded — missing transitive
+            native dependency, wrong architecture or corrupt bytes. The launch is
+            refused before user code; no substitute or development-machine fallback
+            is attempted.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostGraphInvalid">
+            <summary>The app runtime manifest's dependency edges are inconsistent:
+            a package depends on an ID the manifest does not carry, or the edges form
+            a cycle.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostSharedAssemblyConflict">
+            <summary>Two packages stage different shared (foundation) assemblies with
+            the same simple name; one CLR identity cannot be provided for both.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostDependencyUnresolved">
+            <summary>An entry assembly references an assembly that is neither part of
+            its package's staged payload, a shared assembly of its declared
+            dependencies, the plugin SDK, the framework set, nor loaded in the host.
+            Plugin assemblies never resolve through accidental unification.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostEventArgumentUnsupported">
+            <summary>A raised notification argument could not be marshalled to an Objo
+            value. Generated packages cannot produce this (the generator rejects
+            unmappable event signatures at authoring time); it marks a
+            hand-written registration whose delivery arguments disagree with its
+            metadata.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostAsyncAdmissionFull">
+            <summary>The plugin runtime's async-operation admission bound is
+            reached; the call is rejected until live operations settle. Admission
+            is held until an operation actually finishes, even after a cancellation
+            request.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostAsyncSyncConflict">
+            <summary>A synchronous instance member was called on a receiver with
+            pending serial async operations; such use races the provider. Cancel
+            and Await the pending work first, or declare the member
+            <c>[ObjoSafeWhilePending]</c> when it is genuinely safe.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostAsyncSchedulerFull">
+            <summary>The host's blocking-operation scheduler refused to queue the
+            provider work (its bounded pool is saturated); the operation faults
+            promptly instead of blocking a scheduler worker.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginDiagnosticCodes.HostPictureUnavailable">
+            <summary>A Picture-valued plugin call reached a host without a
+            registered Picture pixel adapter.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginContractException">
+            <summary>
+            Thrown when a plugin contract document cannot be parsed or fails validation.
+            Carries the stable diagnostics so callers can surface plain-language
+            messages with technical detail behind them.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PluginContractException.Diagnostics">
+            <summary>Every diagnostic that made the contract operation fail.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginContractException.#ctor(System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.PluginDiagnostic})">
+            <summary>Creates the exception from the complete failure diagnostic list.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.DiagnosticBuilder">
+            <summary>Helper for building diagnostic lists during validation.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PackageId">
+            <summary>
+            A validated package identifier: lower-case dot-separated segments of
+            ASCII alphanumerics and inner hyphens. The identifier (with the exact
+            version) is the immutable identity of a package.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageId.Value">
+            <summary>The validated identifier text.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PackageId.IsValid(System.String)">
+            <summary>Returns true when <paramref name="text"/> is a valid package identifier.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PackageId.TryParse(System.String,Objo.Runtime.Abstractions.PackageId@,System.String@)">
+            <summary>
+            Validates and returns a package identifier, or a diagnostic describing
+            why the text is not one.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PackageId.Parse(System.String)">
+            <summary>Parses a validated identifier or throws <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/>.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PackageId.ToString">
+            <summary>The canonical package identifier text.</summary>
+            <summary>The canonical version text.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.SemanticVersion">
+            <summary>
+            A strict SemVer 2.0.0 version. Package identity uses the exact version text
+            including prerelease and build metadata; two versions are equal only when
+            their normalised text is identical.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SemanticVersion.Value">
+            <summary>The validated version text.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SemanticVersion.Major">
+            <summary>The numeric major version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SemanticVersion.Minor">
+            <summary>The numeric minor version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SemanticVersion.Patch">
+            <summary>The numeric patch version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SemanticVersion.Prerelease">
+            <summary>The prerelease identifiers, or an empty array for a stable release.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SemanticVersion.Build">
+            <summary>The build metadata identifiers, or an empty array when absent.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SemanticVersion.IsValid(System.String)">
+            <summary>Returns true when <paramref name="text"/> is a valid SemVer 2.0.0 version.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SemanticVersion.TryParse(System.String,Objo.Runtime.Abstractions.SemanticVersion@,System.String@)">
+            <summary>
+            Validates and returns a SemVer 2.0.0 version, or a diagnostic describing
+            why the text is not one.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SemanticVersion.Parse(System.String)">
+            <summary>Parses a validated version or throws <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/>.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SemanticVersion.Equals(Objo.Runtime.Abstractions.SemanticVersion)">
+            <summary>Compares the canonical version strings.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SemanticVersion.GetHashCode">
+            <summary>Hash of the canonical version string.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SemanticVersion.ToString">
+            <summary>The canonical version text.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SemanticVersion.AppendTo(System.Text.StringBuilder)">
+            <summary>Renders the version as a compact string, shared by record writers.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoPixelChannels">
+            <summary>Interleaved channels in an owned raw image.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoPixelChannels.Grey">
+            <summary>One 8- or 16-bit component per pixel.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoPixelChannels.Rgb">
+            <summary>Three components per pixel, ordered red, green, blue.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoPixelChannels.Rgba">
+            <summary>Four components per pixel, ordered red, green, blue, alpha.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoAlphaMode">
+            <summary>How the optional alpha channel is represented.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoAlphaMode.None">
+            <summary>The image has no alpha channel (Grey and RGB images).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoAlphaMode.Straight">
+            <summary>Alpha is stored as straight (non-premultiplied) coverage.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoAlphaMode.Premultiplied">
+            <summary>Colour components are already multiplied by alpha.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoColourSpace">
+            <summary>The declared colour interpretation of raw components.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoColourSpace.Unspecified">
+            <summary>No colour interpretation is declared.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoColourSpace.Srgb">
+            <summary>Components are sRGB values.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoColourSpace.LinearRgb">
+            <summary>Components are linear RGB values.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoRowOrder">
+            <summary>Which storage row represents the image's top row.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRowOrder.TopDown">
+            <summary>The first stored row is the top row.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRowOrder.BottomUp">
+            <summary>The first stored row is the bottom row.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoImageDescriptor">
+            <summary>
+            Framework-independent raw pixel layout. Sixteen-bit components are unsigned
+            little-endian values. Stride includes any row padding, which is preserved.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoImageDescriptor.MaximumPixelBytes">
+            <summary>The largest pixel byte count one image may declare.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoImageDescriptor.MaximumIccBytes">
+            <summary>The largest ICC profile byte count one image may carry.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.Width">
+            <summary>Pixel width in component-interleaved samples.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.Height">
+            <summary>Pixel height in rows.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.Stride">
+            <summary>Stored bytes per row, including any row padding.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.Channels">
+            <summary>The interleaved channel layout of every pixel.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.BitsPerComponent">
+            <summary>Bits per component: 8 or unsigned little-endian 16.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.RowOrder">
+            <summary>Which stored row is the image's top row.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.AlphaMode">
+            <summary>How the alpha channel, when present, is represented.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.ColourSpace">
+            <summary>The declared colour interpretation of the components.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.Mutable">
+            <summary>Whether the owning buffer may ever open a write lease.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.ByteLength">
+            <summary>Total pixel bytes: stride times height.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageDescriptor.IccProfile">
+            <summary>A copy of the optional embedded ICC profile bytes.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageDescriptor.#ctor(System.Int32,System.Int32,System.Int32,Objo.Runtime.Abstractions.ObjoPixelChannels,System.Int32,Objo.Runtime.Abstractions.ObjoRowOrder,Objo.Runtime.Abstractions.ObjoAlphaMode,Objo.Runtime.Abstractions.ObjoColourSpace,System.Boolean,System.Byte[])">
+            <summary>
+            Declares one raw image layout. RGBA images must declare straight or
+            premultiplied alpha; Grey and RGB images must declare no alpha.
+            </summary>
+            <param name="width">Pixel width; positive.</param>
+            <param name="height">Pixel height; positive.</param>
+            <param name="stride">Bytes per stored row, at least the packed row size.</param>
+            <param name="channels">Interleaved channel layout.</param>
+            <param name="bitsPerComponent">8 or 16.</param>
+            <param name="rowOrder">Which stored row is the top row.</param>
+            <param name="alphaMode">Alpha representation consistent with the channel layout.</param>
+            <param name="colourSpace">Declared colour interpretation.</param>
+            <param name="mutable">Whether buffers with this layout may be written.</param>
+            <param name="iccProfile">Optional embedded ICC profile.</param>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoReadPixels">
+            <summary>Work on a borrowed read-only pixel span during one synchronous call.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoWritePixels">
+            <summary>Work on a borrowed mutable pixel span during one synchronous call.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoPinnedPixels">
+            <summary>Use a pinned pixel pointer only for this synchronous call.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoImageBuffer">
+            <summary>
+            Owns a copied pixel array. Read leases coexist; a write lease excludes every
+            other lease. Disposal refuses new access and defers clearing until all active
+            leases, including native calls, have finished.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoImageBuffer.Descriptor">
+            <summary>The layout every pixel byte conforms to.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageBuffer.#ctor(Objo.Runtime.Abstractions.ObjoImageDescriptor,System.Byte[])">
+            <summary>
+            Owns a copy of <paramref name="pixels"/> under <paramref name="descriptor"/>.
+            The buffer is immutable unless the descriptor declares it mutable.
+            </summary>
+            <param name="descriptor">The pixel layout; its ByteLength must equal the pixel count.</param>
+            <param name="pixels">Exactly descriptor.ByteLength pixel bytes.</param>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageBuffer.Allocate(Objo.Runtime.Abstractions.ObjoImageDescriptor)">
+            <summary>Allocates a zero-filled mutable buffer when the descriptor allows writes.</summary>
+            <param name="descriptor">The pixel layout to allocate.</param>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageBuffer.Snapshot">
+            <summary>Returns a copy of every pixel byte; refused while a write lease is active.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageBuffer.OpenRead">
+            <summary>Borrows the pixels read-only; read leases coexist with each other.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageBuffer.OpenWrite">
+            <summary>Borrows the pixels for writing; excludes every other lease and requires a mutable image.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageBuffer.Dispose">
+            <summary>Refuses new access and clears the pixels once every active lease has finished.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoImageLease">
+            <summary>A bounded borrow of one owned image's pixel storage.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageLease.Read(Objo.Runtime.Abstractions.ObjoReadPixels)">
+            <summary>Runs <paramref name="callback"/> once with the borrowed read-only pixel span.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageLease.Write(Objo.Runtime.Abstractions.ObjoWritePixels)">
+            <summary>Runs <paramref name="callback"/> once with the borrowed mutable pixel span; write leases only.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageLease.Pin(Objo.Runtime.Abstractions.ObjoPinnedPixels)">
+            <summary>Runs <paramref name="callback"/> once with a pinned pixel pointer for native code.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoImageLease.Dispose">
+            <summary>Ends the lease; active callbacks finish first.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoPictureFrame">
+            <summary>
+            A host Picture's rendered pixels at a plugin call boundary. The generator
+            maps this SDK marker to Objo's built-in Picture type; only a host Picture
+            adapter may create a value from an Objo Picture or publish one back to it.
+            Pixel dimensions come from Image.Descriptor. Logical dimensions are pixel
+            dimensions divided by ScaleFactor, matching Picture's 96-DPI base size.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPictureFrame.Image">
+            <summary>The owned image carrying this frame's pixel bytes.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPictureFrame.ScaleFactor">
+            <summary>Host rendering scale: pixel dimensions per logical dimension, between 1 and 8.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPictureFrame.LogicalWidth">
+            <summary>Pixel width divided by the scale factor.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ObjoPictureFrame.LogicalHeight">
+            <summary>Pixel height divided by the scale factor.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPictureFrame.#ctor(Objo.Runtime.Abstractions.ObjoImageBuffer,System.Double)">
+            <summary>Pairs an owned image with the host rendering scale to publish as a Picture.</summary>
+            <param name="image">The frame's owned pixel buffer.</param>
+            <param name="scaleFactor">Finite scale greater than zero and at most 8; use 1 for unscaled pixels.</param>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoPicturePixels">
+            <summary>
+            The explicit V1 conversion matrix between raw plugin pixels and the host
+            Picture runtimes' rendered 8-bit BGRA premultiplied surfaces. It does not
+            interpret or transform colour; Unspecified stays unspecified. A Picture
+            surface has already been rendered by its host and cannot recover an
+            original source file's component depth, straight-alpha colours or profile.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPicturePixels.AllocateImport(System.Int32,System.Int32,Objo.Runtime.Abstractions.ObjoColourSpace)">
+            <summary>Allocates the one owned RGBA copy of a rendered Picture surface.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPicturePixels.BgraToRgbaInPlace(System.Span{System.Byte},System.Int32,System.Int32)">
+            <summary>Swaps a tightly packed BGRA premultiplied buffer to RGBA in place.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoPicturePixels.CopyToBgra(System.ReadOnlySpan{System.Byte},Objo.Runtime.Abstractions.ObjoImageDescriptor,System.Span{System.Byte})">
+            <summary>
+            Copies a supported raw image into tightly packed top-down BGRA Picture
+            pixels. Eight-bit Grey, RGB and premultiplied RGBA are supported; ICC,
+            16-bit, linear RGB and straight alpha require an explicit conversion by
+            the caller. Row padding and bottom-up storage are handled here.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoNotification">
+            <summary>
+            The bounded delegate shapes an exported notification event may use. V1
+            supports void-returning notifications of zero to four arguments; the
+            argument types must be SDK-mappable Objo values. Arbitrary CLR delegates,
+            non-void returns and synchronous result-returning events from vendor
+            worker threads are outside the contract and produce authoring diagnostics.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoNotification`1">
+            <summary>One-argument typed notification. See <see cref="T:Objo.Runtime.Abstractions.ObjoNotification"/>.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoNotification`2">
+            <summary>Two-argument typed notification. See <see cref="T:Objo.Runtime.Abstractions.ObjoNotification"/>.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoNotification`3">
+            <summary>Three-argument typed notification. See <see cref="T:Objo.Runtime.Abstractions.ObjoNotification"/>.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoNotification`4">
+            <summary>Four-argument typed notification. See <see cref="T:Objo.Runtime.Abstractions.ObjoNotification"/>.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoNotificationRaise">
+            <summary>
+            The raise entry the runtime binds to one declared event of one wrapper
+            instance. Generated code bridges the typed notification arguments into
+            this delegate; it may be invoked from any thread, including vendor worker
+            threads, and never executes Objo code or touches VM state itself — the
+            runtime marshals delivery onto the owning VM thread.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoEventBinder">
+            <summary>
+            Binds one declared notification event of one wrapper instance to runtime
+            delivery. The generated registration supplies the typed bridge: it
+            subscribes the wrapper's CLR event to <paramref name="raise"/> and returns
+            an unsubscriber the runtime disposes when the wrapper's binding ends.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoEventUnsubscribe">
+            <summary>
+            The idempotent unsubscriber <see cref="T:Objo.Runtime.Abstractions.ObjoEventBinder"/> returns.
+            Disposing detaches the bridge's delegate from the wrapper's CLR event;
+            a second disposal is a no-op.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoEventUnsubscribe.#ctor(System.Action)">
+            <summary>
+            The idempotent unsubscriber <see cref="T:Objo.Runtime.Abstractions.ObjoEventBinder"/> returns.
+            Disposing detaches the bridge's delegate from the wrapper's CLR event;
+            a second disposal is a no-op.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoEventUnsubscribe.Dispose">
+            <summary>Disconnects the subscribed handler exactly once.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoEventCoalescing">
+            <summary>
+            The queueing policy of one exported notification event. <see cref="F:Objo.Runtime.Abstractions.ObjoEventCoalescing.None"/>
+            delivers every raise in order (the rule for terminal notifications such as
+            Completed); <see cref="F:Objo.Runtime.Abstractions.ObjoEventCoalescing.Latest"/> coalesces pending raises of the same
+            source event to the newest arguments (the rule for progress). A
+            coalescible notification can never displace or erase a non-coalescible
+            one.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoEventCoalescing.None">
+            <summary>Every raise is queued and delivered in raise order.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoEventCoalescing.Latest">
+            <summary>
+            While a raise of the same source event is queued, a newer raise
+            replaces its arguments at the queued position instead of growing the
+            queue.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoEventCoalescingNames">
+            <summary>The canonical JSON values of <see cref="T:Objo.Runtime.Abstractions.ObjoEventCoalescing"/> in API metadata.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoEventCoalescingNames.None">
+            <summary>In-order delivery without coalescing.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoEventCoalescingNames.Latest">
+            <summary>Keep only the newest pending notification.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoEventCoalescingNames.TryParse(System.String,Objo.Runtime.Abstractions.ObjoEventCoalescing@)">
+            <summary>Reads one canonical coalescing name; false for anything else.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoEventCoalescingNames.ToName(Objo.Runtime.Abstractions.ObjoEventCoalescing)">
+            <summary>The canonical JSON name of one coalescing policy.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoRuntimeVersions">
+            <summary>
+            Version constants for the independent plugin contract domains.
+            Plugin compatibility is keyed to these versions, never to a Studio release
+            version. Weekly Studio releases must not invalidate compatible plugins.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.SdkVersion">
+            <summary>
+            The plugin SDK/ABI contract implemented by this engine. Plugin packages
+            declare the minimum SDK version they require and hosts refuse packages
+            that need a newer SDK.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.PackageManifestSchemaVersion">
+            <summary>SemVer of the <c>objo-package.json</c> schema produced by V1 tooling.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.ApiMetadataSchemaVersion">
+            <summary>SemVer of the <c>api/objo-api.json</c> schema produced by V1 tooling.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.RuntimeDescriptorSchemaVersion">
+            <summary>SemVer of the runtime descriptor schema produced by V1 tooling.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.SolutionLockSchemaVersion">
+            <summary>SemVer of the solution lock schema (<c>Packages/objo.lock.json</c>).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.AppRuntimeSchemaVersion">
+            <summary>SemVer of the <c>app.runtime.json</c> manifest produced for published apps.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.PackageManifestSchema">
+            <summary>The envelope schema discriminator string used inside package manifests.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.ApiMetadataSchema">
+            <summary>The envelope schema discriminator string used inside API metadata.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.RuntimeDescriptorSchema">
+            <summary>The envelope schema discriminator string used inside runtime descriptors.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.SolutionLockSchema">
+            <summary>The envelope schema discriminator string used inside solution locks.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.AppRuntimeSchema">
+            <summary>The envelope schema discriminator string used inside app runtime manifests.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ObjoRuntimeVersions.PackageArchiveExtension">
+            <summary>Archive file name used for embedded dependency archives in vendor exports.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoRuntimeVersions.IsSdkSupported(System.String)">
+            <summary>
+            True when a document or package declaring <paramref name="requiredSdkVersion"/>
+            can be honoured by this engine's SDK contract. Packages declare the minimum
+            SDK they require; hosts refuse anything needing a newer SDK and never
+            refuse an older one.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PackageLimits">
+            <summary>
+            Bounded sizes enforced before allocating or extracting package content.
+            These limits are part of the V1 contract: tooling must produce archives
+            within them and validation must reject content beyond them with a stable
+            diagnostic. Changes require an explicit compatibility decision.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxPackageIdLength">
+            <summary>Maximum length of a package identifier.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxPackageIdSegmentLength">
+            <summary>Maximum length of a single dot-separated package identifier segment.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxPackageIdSegments">
+            <summary>Maximum number of dot-separated segments in a package identifier.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxRecordJsonBytes">
+            <summary>Maximum bytes for a manifest, runtime descriptor, lock or app runtime document.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxApiMetadataJsonBytes">
+            <summary>Maximum bytes for the API metadata document of one package.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxPayloadEntries">
+            <summary>Maximum number of payload entries declared by one manifest.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxPayloadEntryBytes">
+            <summary>Maximum uncompressed size in bytes for one payload entry.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxPayloadTotalBytes">
+            <summary>Maximum total uncompressed size in bytes for one package's payload.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxPayloadEntryNameLength">
+            <summary>Maximum declared payload entry name length including directories.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxCompressionRatio">
+            <summary>
+            Maximum expansion ratio (uncompressed/compressed) accepted for any entry;
+            larger ratios are treated as compression bombs.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxDependencies">
+            <summary>Maximum number of exact dependencies declared by one package.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxDependencyArchives">
+            <summary>Maximum number of dependency archives carried in a vendor export.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxApiTypes">
+            <summary>Maximum exported types in one package's API metadata.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxApiMembers">
+            <summary>Maximum exported members in one package's API metadata.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxDescriptionLength">
+            <summary>Maximum character length of any single author-supplied description.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxGraphPackages">
+            <summary>Maximum number of packages in one solution lock or app runtime graph.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxDisplayNameLength">
+            <summary>Maximum character length of a display name or publisher declaration.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxManifestDescriptionLength">
+            <summary>Maximum character length of the manifest summary description.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxArchiveEntries">
+            <summary>
+            Maximum number of ZIP entries in one package archive: declared payload
+            entries, declared dependency archives and the fixed contract documents.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxImportArchives">
+            <summary>Maximum number of archives validated in one complete import (a root package plus its nested dependency-archive closure, plus separately supplied archives).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageLimits.MaxImportTotalPayloadBytes">
+            <summary>Maximum total uncompressed payload bytes across one complete import, including every nested dependency archive.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginHosts">
+            <summary>
+            The V1 host profiles a package can declare support for. Values are stable
+            contract strings used in manifests, API metadata, locks and app runtimes.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginHosts.Desktop">
+            <summary>Desktop application host.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginHosts.CommandLine">
+            <summary>Command-line application host.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginHosts.Web">
+            <summary>Web application host.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginHosts.Worker">
+            <summary>Background worker host.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PluginHosts.All">
+            <summary>All host profiles known to this contract version.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginHosts.IsKnown(System.String)">
+            <summary>Whether the value is one of this contract version's host profiles.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ContractPaths">
+            <summary>
+            Safe relative-path rules for payload entries, dependency archives and
+            staged app paths: forward slashes, no absolute paths, no traversal,
+            no empty segments, printable characters, bounded length.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ContractPaths.MaxPathLength">
+            <summary>Maximum characters in a contract path.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ContractPaths.IsValid(System.String)">
+            <summary>Whether the path obeys the contract's safe relative-path rules.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ContractPaths.IsManagedPayloadPath(System.String)">
+            <summary>True when the path uses the declared managed-directory layout.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ContractPaths.IsNativePayloadPath(System.String,System.String)">
+            <summary>True when the path uses the declared RID-native directory layout.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginModuleExecution">
+            <summary>
+            Records which plugin assemblies have actually executed code in this
+            process. Qualification fixtures record themselves from their module
+            initializer; inspection steps (generation, packing, validation,
+            compilation) never execute plugin code, so tests use these records to
+            prove where plugin code ran without reading any fixture static. This is
+            diagnostics support only: it takes no part in package identity, hashing or
+            host admission.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginModuleExecution.Record(System.String)">
+            <summary>Records that the assembly at <paramref name="assemblyLocation"/> executed code.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginModuleExecution.WasExecuted(System.String)">
+            <summary>True when the assembly at this location has executed code in this process.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.CanonicalObjectWriter">
+            <summary>
+            Buffered object writer that emits property names in canonical (ordinal
+            sorted) order. Records build their representation here so canonical output
+            never depends on declaration order. Unknown extension fields merge into the
+            same sorted stream.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.CanonicalObjectWriter.SetExtensionFields(System.Collections.Generic.IReadOnlyDictionary{System.String,System.Text.Json.JsonElement})">
+            <summary>Merges unknown extension fields, preserving their canonical JSON.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.CanonicalObjectWriter.ToCanonicalJson">
+            <summary>Renders the object as a canonical JSON string.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.RecordJsonReader">
+            <summary>
+            Strict reader used by record parsers: required fields produce diagnostics
+            instead of defaults, and unknown fields are collected for preservation.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.RecordJsonReader.GetRequiredHash(System.String,System.String)">
+            <summary>Validates a required SHA-256 hex field, returning null when invalid.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.RecordJsonReader.GetOptionalHash(System.String,System.String)">
+            <summary>Validates an optional SHA-256 hex field, returning null when absent or invalid.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ApiMemberKinds">
+            <summary>Exported API member kinds.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ApiMemberKinds.Method">
+            <summary>An exported method (including constructors, named Constructor).</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ApiMemberKinds.Property">
+            <summary>An exported property.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.ApiMemberKinds.Event">
+            <summary>An exported typed notification event.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMemberKinds.IsKnown(System.String)">
+            <summary>Whether the value is one of the known member kinds.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ApiParameter">
+            <summary>One typed parameter of an exported member.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiParameter.Name">
+            <summary>The Objo-visible parameter name.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiParameter.TypeName">
+            <summary>The Objo type name of the parameter.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiParameter.IsOptional">
+            <summary>Whether Objo callers may omit the parameter.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiParameter.DefaultValue">
+            <summary>Canonical default-value text for optional parameters.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiParameter.Description">
+            <summary>Author description shown to Objo users.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ApiMember">
+            <summary>One exported member (method, property or event) of an exported type.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Name">
+            <summary>The Objo-visible member name; constructors are named Constructor.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Kind">
+            <summary>One of the <see cref="T:Objo.Runtime.Abstractions.ApiMemberKinds"/> values.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Parameters">
+            <summary>Declared parameters; empty for properties and events.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.ReturnTypeName">
+            <summary>The Objo return type name, or Nothing for void members.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.IsShared">
+            <summary>Whether the member is shared (static) rather than an instance member.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.IsReadonly">
+            <summary>Properties: whether the value can only be read.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.IsAsync">
+            <summary>Whether the member's Objo result is a Task Awaited by callers.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Coalescing">
+            <summary>
+            Events only: the canonical coalescing policy name
+            (<see cref="T:Objo.Runtime.Abstractions.ObjoEventCoalescingNames"/>), or null for the default
+            in-order delivery of non-coalescible notifications.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Description">
+            <summary>Author description shown to Objo users.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Deprecation">
+            <summary>Author deprecation note, when the member is deprecated.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Hosts">
+            <summary>Host profiles this member is available in.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.Signature">
+            <summary>
+            The canonical full-signature call identity shared with generated
+            registration and compiler call encoding:
+            <c>Name(type1,type2)</c>. Members with no parameters use the bare
+            name; property and event names have no parameters.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ApiType">
+            <summary>One exported type: a namespaced class exposed to Objo.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiType.Name">
+            <summary>The namespace-qualified Objo type name.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiType.Description">
+            <summary>Author description shown to Objo users.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiType.Deprecation">
+            <summary>Author deprecation note, when the type is deprecated.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiType.Members">
+            <summary>Every exported member, canonically ordered.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ApiEnumValue">
+            <summary>One exported enum value.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiEnumValue.Name">
+            <summary>The Objo-visible constant name.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiEnumValue.Value">
+            <summary>The constant's Integer value.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiEnumValue.Description">
+            <summary>Author description shown to Objo users.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ApiEnum">
+            <summary>One exported enum (constants) type.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiEnum.Name">
+            <summary>The namespace-qualified Objo enum name.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiEnum.UnderlyingTypeName">
+            <summary>The Objo type backing the constants.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiEnum.Values">
+            <summary>Every exported constant, canonically ordered.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiEnum.Description">
+            <summary>Author description shown to Objo users.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ApiMetadata">
+            <summary>
+            The <c>api/objo-api.json</c> document: the complete public API surface of a
+            package, including author descriptions and deprecations. Reading this
+            document never loads or executes plugin code.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.Schema">
+            <summary>API metadata schema identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.PackageId">
+            <summary>The package this API belongs to.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.Version">
+            <summary>The package's exact version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.SdkVersion">
+            <summary>SDK version the package was generated against.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.Namespace">
+            <summary>The package's public Objo root module.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.Types">
+            <summary>Every exported class, canonically ordered.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.Enums">
+            <summary>Every exported enum, canonically ordered.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMetadata.ExtensionFields">
+            <summary>Reserved extension fields, ignored by this contract version.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.ComputeApiSha256">
+            <summary>Computes the canonical API hash over the canonical document bytes.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.FromJson(System.String)">
+            <summary>Parses API metadata, throwing <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/> on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.TryFromJson(System.String,Objo.Runtime.Abstractions.ApiMetadata@,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.PluginDiagnostic}@)">
+            <summary>Parses API metadata, returning false with diagnostics on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.IsValidQualifiedName(System.String)">
+            <summary>A dotted qualified name of identifier segments.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.IsValidIdentifier(System.String)">
+            <summary>An Objo identifier: letter or underscore, then letters, digits or underscores.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.IsValidTypeName(System.String)">
+            <summary>A parameter/return type name: identifier segments, optionally array-suffixed.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.ToCanonicalJson">
+            <summary>Writes the API metadata in canonical JSON form.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.AppRuntimePackage">
+            <summary>One package in the exact resolved graph recorded for a built application.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimePackage.PackageId">
+            <summary>The package's identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimePackage.Version">
+            <summary>The exact selected version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimePackage.ApiSha256">
+            <summary>SHA-256 of the package's canonical API document.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimePackage.EntryAssembly">
+            <summary>File name of the registration entry assembly.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimePackage.EntryType">
+            <summary>Full name of the registration entry type.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimePackage.Dependencies">
+            <summary>The package IDs this package declares as exact dependencies
+            (direct edges only; every dependency must itself appear in the manifest).
+            The host loader uses these edges to resolve shared contract assemblies
+            and native assets of dependency packages, never simple-name unification.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.StagedAssetRoles">
+            <summary>The role of a staged asset inside a built application.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.StagedAssetRoles.Managed">
+            <summary>Staged managed assembly.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.StagedAssetRoles.Native">
+            <summary>Staged native library.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.StagedAssetRoles.IsKnown(System.String)">
+            <summary>Whether the value is one of the known staged-asset roles.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.StagedAsset">
+            <summary>One staged asset: an app-relative path plus its post-staging hash.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.StagedAsset.PackageId">
+            <summary>The package the staged bytes came from.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.StagedAsset.StagedPath">
+            <summary>App-relative path where the asset was staged for this application.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.StagedAsset.Sha256">
+            <summary>SHA-256 of the staged bytes. Signing may alter original package bytes;
+            this hash is authoritative for runtime verification of this application.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.StagedAsset.Role">
+            <summary>One of the <see cref="T:Objo.Runtime.Abstractions.StagedAssetRoles"/> values.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.StagedAsset.IsShared">
+            <summary>True for shared (foundation/SDK) assemblies unified across packages.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.AppRuntimeManifest">
+            <summary>
+            The <c>app.runtime.json</c> manifest staged into a built application: the
+            exact resolved graph, selected RID assets with post-staging hashes, and the
+            registration entry points. Runtime hosts verify this manifest before user
+            code runs; it never references the Studio library, a developer cache or a
+            registry.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimeManifest.Schema">
+            <summary>Manifest schema identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimeManifest.SdkVersion">
+            <summary>SDK/ABI contract version the application was built against.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimeManifest.Rid">
+            <summary>The selected runtime identifier, or "any" for portable builds.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimeManifest.Packages">
+            <summary>The exact resolved package graph.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimeManifest.Assets">
+            <summary>Every staged asset with post-staging hashes.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.AppRuntimeManifest.ExtensionFields">
+            <summary>Reserved extension fields, ignored by this contract version.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.AppRuntimeManifest.FromJson(System.String)">
+            <summary>Parses an app runtime manifest, throwing <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/> on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.AppRuntimeManifest.TryFromJson(System.String,Objo.Runtime.Abstractions.AppRuntimeManifest@,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.PluginDiagnostic}@)">
+            <summary>Parses an app runtime manifest, returning false with diagnostics on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.AppRuntimeManifest.ToCanonicalJson">
+            <summary>Writes the app runtime manifest in canonical JSON form.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PayloadRoles">
+            <summary>Payload inventory roles declared by a package manifest.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PayloadRoles.Managed">
+            <summary>Managed assembly payload.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PayloadRoles.Native">
+            <summary>Native library payload for a declared RID.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PayloadRoles.Licence">
+            <summary>License document payload.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PayloadRoles.Data">
+            <summary>Arbitrary data payload.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PayloadRoles.IsKnown(System.String)">
+            <summary>Whether the value is one of the known payload roles.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PackageCapabilities">
+            <summary>
+            Capabilities a package can require. A host that does not implement a
+            declared capability must refuse the package rather than degrade silently.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageCapabilities.NativeAssets">
+            <summary>The package bundles native assets for declared RIDs.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageCapabilities.DependencyArchives">
+            <summary>The package carries dependency archives in a vendor export.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageCapabilities.HostSpecificMembers">
+            <summary>The package declares per-host member availability in its API metadata.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageCapabilities.All">
+            <summary>All capabilities this contract version defines.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PackagePayloadEntry">
+            <summary>One file in the package payload inventory.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackagePayloadEntry.Path">
+            <summary>Archive-relative payload path in safe contract form.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackagePayloadEntry.Sha256">
+            <summary>SHA-256 of the payload bytes.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackagePayloadEntry.SizeBytes">
+            <summary>Declared payload size in bytes.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackagePayloadEntry.Role">
+            <summary>One of the <see cref="T:Objo.Runtime.Abstractions.PayloadRoles"/> values.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PackageDependency">
+            <summary>One exact dependency declared by a package.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageDependency.PackageId">
+            <summary>The dependency's package identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageDependency.Version">
+            <summary>The exact required version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageDependency.ArchiveSha256">
+            <summary>SHA-256 of the exact dependency archive.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageDependency.ApiSha256">
+            <summary>SHA-256 of the dependency's canonical API document.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.DependencyArchiveEntry">
+            <summary>One dependency archive embedded in a vendor export.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.DependencyArchiveEntry.PackageId">
+            <summary>The embedded dependency's package identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.DependencyArchiveEntry.Version">
+            <summary>The embedded dependency's exact version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.DependencyArchiveEntry.FileName">
+            <summary>Archive-relative file name of the embedded archive.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.DependencyArchiveEntry.ArchiveSha256">
+            <summary>SHA-256 of the embedded archive bytes.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PackageManifest">
+            <summary>
+            The <c>objo-package.json</c> manifest: identity, declarations, exact
+            dependencies and the complete payload inventory. Unknown optional fields
+            are preserved verbatim on rewrite; unsupported declared semantics
+            (unknown kind, capability or host) are rejected.
+            </summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.PackageManifest.KindRuntime">
+            <summary>The only manifest kind this contract version defines.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Schema">
+            <summary>Manifest schema identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.PackageId">
+            <summary>The package's identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Version">
+            <summary>The package's exact version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Kind">
+            <summary>The manifest kind; only runtime packages exist in V1.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Name">
+            <summary>Display name shown to Objo users.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Publisher">
+            <summary>Declared publisher; displayed as declared, never verified as authenticated identity.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Description">
+            <summary>Short description shown to Objo users.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Authors">
+            <summary>Author names displayed with the package.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Licence">
+            <summary>SPDX-style licence identifier or name, e.g. "MIT".</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.LicenceFile">
+            <summary>Licence document payload path, when the licence ships in the archive.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.ProjectUrl">
+            <summary>Project URL for documentation and support.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Namespace">
+            <summary>The package's public Objo root module.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.SdkVersion">
+            <summary>SDK/ABI contract version the package requires.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Hosts">
+            <summary>Host profiles the package declares support for.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Capabilities">
+            <summary>Capabilities the package requires its hosts to implement.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Dependencies">
+            <summary>Exact dependencies on other packages.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.DependencyArchives">
+            <summary>Dependency archives embedded in a vendor export.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.Payload">
+            <summary>The complete payload inventory.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.PackageManifest.ExtensionFields">
+            <summary>Reserved extension fields, ignored by this contract version.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PackageManifest.FromJson(System.String)">
+            <summary>Parses a manifest, throwing <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/> on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PackageManifest.TryFromJson(System.String,Objo.Runtime.Abstractions.PackageManifest@,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.PluginDiagnostic}@)">
+            <summary>Parses a manifest, returning false with diagnostics on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PackageManifest.ToCanonicalJson">
+            <summary>Writes the manifest in canonical JSON form.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.RuntimeAssembly">
+            <summary>One managed assembly declared by a runtime descriptor.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeAssembly.Path">
+            <summary>Package-relative assembly path.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeAssembly.Sha256">
+            <summary>SHA-256 of the assembly bytes.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeAssembly.Version">
+            <summary>The assembly identity version declared for shared (foundation) assemblies.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.RuntimeManagedEntry">
+            <summary>The managed entry point of the package's generated registration.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeManagedEntry.EntryAssembly">
+            <summary>File name of the entry assembly within the package payload.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeManagedEntry.EntryType">
+            <summary>Full name of the generated registration type.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeManagedEntry.SharedAssemblies">
+            <summary>Assemblies unified across dependent plugins (shared vendor foundations and the SDK).</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeManagedEntry.PrivateAssemblies">
+            <summary>Assemblies loaded inside this package's private load context.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.RuntimeRidAssets">
+            <summary>Assets for one runtime identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeRidAssets.Rid">
+            <summary>"any" for portable managed assets, otherwise a specific RID.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeRidAssets.Managed">
+            <summary>Managed assemblies staged for this RID.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeRidAssets.Native">
+            <summary>Native libraries staged for this RID.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeRidAssets.MinimumOsVersion">
+            <summary>Minimum OS version required by this RID's native assets, if any.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.RuntimeDescriptor">
+            <summary>
+            The runtime descriptor: how a validated package graph instantiates and
+            registers this package inside an application host. Hosts compare the
+            generated registration's package identity, SDK/ABI and API hash against
+            this descriptor and refuse launch on disagreement.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.Schema">
+            <summary>Descriptor schema identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.PackageId">
+            <summary>The package this descriptor belongs to.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.Version">
+            <summary>The package's exact version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.SdkVersion">
+            <summary>SDK/ABI contract version the package was generated against.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.ApiSha256">
+            <summary>SHA-256 of the canonical API document this registration must match.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.Managed">
+            <summary>The generated registration entry, when the package is managed.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.Assets">
+            <summary>Per-RID staged assets.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.RuntimeDescriptor.ExtensionFields">
+            <summary>Reserved extension fields, ignored by this contract version.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.RuntimeDescriptor.FromJson(System.String)">
+            <summary>Parses a runtime descriptor, throwing <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/> on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.RuntimeDescriptor.TryFromJson(System.String,Objo.Runtime.Abstractions.RuntimeDescriptor@,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.PluginDiagnostic}@)">
+            <summary>Parses a runtime descriptor, returning false with diagnostics on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.RuntimeDescriptor.ToCanonicalJson">
+            <summary>Writes the runtime descriptor in canonical JSON form.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.LockReferenceScopes">
+            <summary>The scope of a locked package reference within a solution.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.LockReferenceScopes.Project">
+            <summary>Visible to one project only.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.LockReferenceScopes.Shared">
+            <summary>Visible to Shared Code and every project; must be compatible with every project.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.LockReferenceScopes.IsKnown(System.String)">
+            <summary>Whether the value is one of the known lock scopes.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.LockPackageStorage">
+            <summary>Where a developer solution obtains the exact package archive.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.LockPackageStorage.Embedded">
+            <summary>The exact archive is embedded inside the solution.</summary>
+        </member>
+        <member name="F:Objo.Runtime.Abstractions.LockPackageStorage.Library">
+            <summary>The exact archive is installed in this developer's Plugin Library.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.LockPackageStorage.IsKnown(System.String)">
+            <summary>Whether the value is one of the known storage modes.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.LockReference">
+            <summary>One project reference recorded in the lock.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockReference.ProjectId">
+            <summary>The referencing project's identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockReference.Scope">
+            <summary>One of the <see cref="T:Objo.Runtime.Abstractions.LockReferenceScopes"/> values.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.LockPackage">
+            <summary>One package entry in the solution lock.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.PackageId">
+            <summary>The locked package's identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.Version">
+            <summary>The locked exact version.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.ArchiveSha256">
+            <summary>SHA-256 of the exact archive bytes.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.ApiSha256">
+            <summary>SHA-256 of the canonical API document.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.ArchivePath">
+            <summary>Canonical solution-relative archive path, used when embedded.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.Storage">
+            <summary>Whether the archive is embedded or separately installed for this developer.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.DirectFor">
+            <summary>Projects that directly reference this package.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.References">
+            <summary>Project references with their scope.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.LockPackage.Dependencies">
+            <summary>Direct package dependency IDs (exact versions are carried by those entries).</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.SolutionLock">
+            <summary>
+            The solution lock (<c>Packages/objo.lock.json</c>): the exact resolved
+            package graph embedded in a solution. Entries are canonically ordered by
+            package ID; disagreement with embedded archive bytes is an integrity error.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SolutionLock.Schema">
+            <summary>Lock schema identifier.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SolutionLock.Packages">
+            <summary>The exact resolved package graph, canonically ordered.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.SolutionLock.ExtensionFields">
+            <summary>Reserved extension fields, ignored by this contract version.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SolutionLock.FromJson(System.String)">
+            <summary>Parses a solution lock, throwing <see cref="T:Objo.Runtime.Abstractions.PluginContractException"/> on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SolutionLock.TryFromJson(System.String,Objo.Runtime.Abstractions.SolutionLock@,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.PluginDiagnostic}@)">
+            <summary>Parses a solution lock, returning false with diagnostics on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.SolutionLock.ToCanonicalJson">
+            <summary>Writes the solution lock in canonical JSON form.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoEnumValue">
+            <summary>
+            One exported enum value in generated registration calls.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoEnumValue.#ctor(System.String,System.Int64,System.String)">
+            <summary>
+            One exported enum value in generated registration calls.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.IPluginInvocation">
+            <summary>
+            The VM-agnostic invocation context handed to generated registration
+            handlers. Implementations bind these calls to a specific host runtime; the
+            generated code never sees VM stack slots or internal value representations.
+            Argument index 0 is the receiver for instance members; constructors and
+            shared members start at index 0 with the first declared argument.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.IPluginInvocation.ArgumentCount">
+            <summary>The number of arguments supplied for this call.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetBoolean(System.Int32)">
+            <summary>Reads a Boolean argument.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetInteger(System.Int32)">
+            <summary>Reads an Integer argument. Hosts range-check narrowed values; no silent truncation occurs.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetDouble(System.Int32)">
+            <summary>Reads a Double argument.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetString(System.Int32)">
+            <summary>Reads a String argument; may be Nothing.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetBuffer(System.Int32)">
+            <summary>Reads a binary-buffer argument as an owned copy.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetPicture(System.Int32)">
+            <summary>Copies a host Picture into an owned, rendered pixel frame.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetInstance(System.Int32)">
+            <summary>Reads an opaque wrapper instance argument, or Nothing.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetIntegerArray(System.Int32)">
+            <summary>Reads an array argument as an owned copy of its elements.</summary>
+            <summary>Reads an Integer array argument as an owned copy.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetDoubleArray(System.Int32)">
+            <summary>Reads a Double array argument as an owned copy.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetBooleanArray(System.Int32)">
+            <summary>Reads a Boolean array argument as an owned copy.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetStringArray(System.Int32)">
+            <summary>Reads a String array argument as an owned copy; elements may be Nothing.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetBufferArray(System.Int32)">
+            <summary>Reads a buffer array argument as owned copies of its elements.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetInstanceArray``1(System.Int32)">
+            <summary>Reads an array of opaque wrapper instances as an owned copy, or Nothing.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetBooleanResult(System.Boolean)">
+            <summary>Returns a Boolean to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetIntegerResult(System.Int64)">
+            <summary>Returns an Integer to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetDoubleResult(System.Double)">
+            <summary>Returns a Double to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetStringResult(System.String)">
+            <summary>Returns a String (or Nothing) to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetBufferResult(System.Byte[])">
+            <summary>Returns the bytes as a fresh MemoryBlock to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetPictureResult(Objo.Runtime.Abstractions.ObjoPictureFrame)">
+            <summary>Creates a host Picture from a frame on the owning VM turn.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetIntegerArrayResult(System.Int64[])">
+            <summary>Returns an Integer array to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetDoubleArrayResult(System.Double[])">
+            <summary>Returns a Double array to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetBooleanArrayResult(System.Boolean[])">
+            <summary>Returns a Boolean array to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetStringArrayResult(System.String[])">
+            <summary>Returns a String array to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetBufferArrayResult(System.Byte[][])">
+            <summary>Returns a MemoryBlock array to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetInstanceArrayResult``1(``0[])">
+            <summary>Returns an array of wrapped instances (or Nothing) to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetInstanceResult(System.Object)">
+            <summary>Returns a wrapped instance (or Nothing) to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.DisposeInstance">
+            <summary>
+            Disposes the receiver wrapper of an instance disposal member: the adapter
+            marks the wrapper disposed, invokes the vendor's Dispose implementation
+            exactly once and settles runtime cleanup. Calling this a second time is a
+            no-op; member calls on the disposed wrapper reject afterwards.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetNothingResult">
+            <summary>Returns Nothing to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.BeginAsync(System.Func{Objo.Runtime.Abstractions.ObjoAsyncRunner,System.Threading.Tasks.Task},System.Action)">
+            <summary>
+            Begins one admitted async operation and makes its pending Objo Task this
+            call's result. The generated handler must have read every argument
+            already — the inputs are snapshotted on the owning VM turn.
+            <paramref name="startWork"/> runs synchronously on the owning VM turn
+            (it must only start provider work, never block); it receives the
+            host-owned <see cref="T:Objo.Runtime.Abstractions.ObjoAsyncRunner"/> for scheduling blocking
+            provider work. When the returned provider task settles, the runtime
+            enqueues exactly one settlement onto the owning VM, where
+            <paramref name="settle"/> materialises the result through the ordinary
+            Set*Result members and the Task completes, faults or cancels. Throws
+            the documented admission diagnostic when this load's operation bound is
+            reached; a start failure after admission faults the returned Task.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.BeginAsync``1(System.Func{Objo.Runtime.Abstractions.ObjoAsyncRunner,System.Threading.Tasks.Task{``0}},System.Action{``0})">
+            <summary>
+            The typed form of <see cref="M:Objo.Runtime.Abstractions.IPluginInvocation.BeginAsync(System.Func{Objo.Runtime.Abstractions.ObjoAsyncRunner,System.Threading.Tasks.Task},System.Action)"/>:
+            the provider task produces <typeparamref name="T"/> and
+            <paramref name="settle"/> receives it when the operation succeeds.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.ThrowPluginError(System.String)">
+            <summary>
+            Raises an ordinary Objo plugin exception carrying the message.
+            Native process crashes are not catchable Objo exceptions and never use
+            this path.
+            </summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoMethodHandler">
+            <summary>The delegate shape of every generated registration handler.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.IPackageRegistrar">
+            <summary>
+            The stable registration surface implemented by each host runtime and
+            invoked by generated registration code. Descriptors reach the registrar
+            only after host-side validation; the registrar never exposes VM internals.
+            </summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.IPackageRegistrar.PackageId">
+            <summary>The package identifier this registrar instance accepts.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.ExportType(System.String,System.String,System.String)">
+            <summary>Declares an exported namespaced class.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.ExportEnum(System.String,System.String,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.ObjoEnumValue})">
+            <summary>Declares an exported enum (constants) with Integer values.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterConstructor(System.String,System.String,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>Registers one public constructor of an exported class.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterSharedMethod(System.String,System.String,System.String,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>Registers a synchronous shared (static) method.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterMethod(System.String,System.String,System.String,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>Registers a synchronous instance method.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterMethod(System.String,System.String,System.String,System.Boolean,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>
+            Registers a synchronous instance method that remains callable while
+            async operations are pending on the same receiver (the cancel-request
+            pattern). Ordinary synchronous members reject such calls; async
+            members never conflict and use <see cref="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterAsyncMethod(System.String,System.String,System.String,Objo.Runtime.Abstractions.ObjoAsyncConcurrency,Objo.Runtime.Abstractions.ObjoMethodHandler)"/> instead.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterAsyncMethod(System.String,System.String,System.String,Objo.Runtime.Abstractions.ObjoAsyncConcurrency,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>
+            Declares an exported async instance method whose Objo-visible result is
+            Task/Task(Of T). The handler snapshots its arguments on the VM turn and
+            begins the operation through <c>IPluginInvocation.BeginAsync</c>; the
+            runtime enforces the declared per-receiver concurrency contract.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterAsyncSharedMethod(System.String,System.String,System.String,Objo.Runtime.Abstractions.ObjoAsyncConcurrency,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>The shared form of <see cref="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterAsyncMethod(System.String,System.String,System.String,Objo.Runtime.Abstractions.ObjoAsyncConcurrency,Objo.Runtime.Abstractions.ObjoMethodHandler)"/> (no receiver, no serial queue).</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterPropertyGetter(System.String,System.String,System.String,System.Boolean,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>Registers a property getter.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterPropertySetter(System.String,System.String,System.String,System.Boolean,Objo.Runtime.Abstractions.ObjoMethodHandler)">
+            <summary>Registers a property setter.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPackageRegistrar.RegisterEvent(System.String,System.String,System.String,Objo.Runtime.Abstractions.ObjoEventCoalescing,Objo.Runtime.Abstractions.ObjoEventBinder)">
+            <summary>
+            Declares a typed notification event and its typed bridge. The binder
+            subscribes the wrapper instance's CLR event to runtime delivery when
+            the runtime materialises the wrapper, returning an unsubscriber the
+            runtime disposes when that wrapper's binding ends. The signature uses
+            the method convention <c>Name(type1,type2)</c>.
+            </summary>
+        </member>
+    </members>
+</doc>
