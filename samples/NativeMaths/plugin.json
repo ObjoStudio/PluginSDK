@@ -1,0 +1,11 @@
+{
+  "assembly": "bin/Release/net10.0/Acme.NativeMaths.dll",
+  "xmlDocumentation": "bin/Release/net10.0/Acme.NativeMaths.xml",
+  "output": "out/acme.nativemaths-1.0.0.objopackage",
+  "hosts": ["desktop", "commandLine", "web", "worker"],
+  "authors": ["Objo contributors"],
+  "native": [
+    { "rid": "osx-arm64", "file": "native/osx-arm64/libacme_nativemaths.dylib" }
+  ],
+  "licenceFile": { "path": "licences/LICENSE", "file": "LICENSE" }
+}

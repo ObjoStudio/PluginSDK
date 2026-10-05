@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.1.0
+# Objo Plugin SDK 1.1.1
 
-Download the `plugin-sdk-1.1.0.zip` release from
+Download the `plugin-sdk-1.1.1.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
@@ -13,14 +13,25 @@ The distribution contains:
   documentation: the supported wrapper reference.
 - `template/FirstMaths`: first plugin with methods, property, typed event,
   XML help, licence and package input.
-- `samples/`: database, DOCX, native image and shared-foundation wrappers.
+- `samples/`: minimal native, database, DOCX, native image and shared-foundation wrappers.
 
 Set `OBJO_PLUGIN_SDK_ROOT` to the extracted distribution directory. From a
 copy of `template/FirstMaths`, run:
 
 ```sh
+export OBJO_PLUGIN_SDK_ROOT="$HOME/Downloads/plugin-sdk"
 dotnet "$OBJO_PLUGIN_SDK_ROOT/tool/objo-plugin.dll" build plugin.json
 dotnet "$OBJO_PLUGIN_SDK_ROOT/tool/objo-plugin.dll" inspect out/org.example.firstmaths-1.0.0.objopackage
+```
+
+On Windows PowerShell, set and read the variable through the `$env:` prefix; a
+bare `$OBJO_PLUGIN_SDK_ROOT` names a PowerShell variable, not the environment
+variable, and expands to nothing:
+
+```powershell
+$env:OBJO_PLUGIN_SDK_ROOT = 'C:\Users\you\Downloads\plugin-sdk'
+dotnet "$env:OBJO_PLUGIN_SDK_ROOT\tool\objo-plugin.dll" build plugin.json
+dotnet "$env:OBJO_PLUGIN_SDK_ROOT\tool\objo-plugin.dll" inspect out/org.example.firstmaths-1.0.0.objopackage
 ```
 
 `build` runs the wrapper build, generation, rebuild and packing in order,
@@ -38,7 +49,10 @@ namespace in your own brand or domain: the `Objo` namespace is reserved for
 use by Objo Studio / Pettet Industries. `plugin.json` paths
 are relative to that file and must stay within its directory. The supplied
 native image sample currently declares macOS arm64 assets only; build and test
-additional RIDs before adding them to its package input.
+additional RIDs before adding them to its package input. The minimal
+`samples/NativeMaths` sample ships the exercised `osx-arm64` asset and both a
+`build-native.sh` and a `build-native.ps1`; build and add further RIDs before
+declaring them.
 
 ## Return a Picture from raw pixels
 
@@ -81,8 +95,7 @@ an ordinary `Picture`, ready for a Canvas or ImageViewer.
 ### Runtime compatibility
 
 Plugins calling these factories need a Studio/runtime build that includes
-them. This support is scheduled for Objo Studio 26.10.1; the current stable
-26.9.4 release does not include it. Remote execution also needs a matching
+them: Objo Studio 26.10.1 or later. Remote execution also needs a matching
 Remote Debugger. Updating the SDK alone does not update Studio or application
 hosts. For older compatible plugin runtimes, construct the descriptor, buffer
 and frame explicitly instead of calling the factories.

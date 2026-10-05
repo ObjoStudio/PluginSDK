@@ -7,3 +7,7 @@ ImageEffects/Tone/native/
 ImageEffects/Tone/dependencies/
 SharedFoundation/Creator/dependencies/
 SharedFoundation/Mutator/dependencies/
+NativeMaths/native/osx-x64/
+NativeMaths/native/linux-x64/
+NativeMaths/native/linux-arm64/
+NativeMaths/native/win-x64/
