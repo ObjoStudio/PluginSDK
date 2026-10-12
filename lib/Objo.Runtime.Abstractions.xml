@@ -164,6 +164,18 @@
             <summary>Records the description text that overrides any XML summary.</summary>
             <param name="text">The description shown to Objo users.</param>
         </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoAssignsAttribute">
+            <summary>
+            Marks an exported method as an Objo parameterized setter: its last
+            parameter becomes the <c>Assigns</c> value, so Objo code calls the method
+            with assignment syntax (<c>doc.Metadata("author") = "Björn"</c>) and the
+            assigned value arrives as the final argument of an ordinary invocation.
+            The method must declare at least one parameter and its last parameter
+            cannot be optional; calling convention and dispatch are unchanged, so no
+            bridge value transport is added. Constructors, properties and events
+            cannot carry the attribute.
+            </summary>
+        </member>
         <member name="T:Objo.Runtime.Abstractions.ObjoEventAttribute">
             <summary>
             Marks a CLR event as a typed Objo notification event. Handlers are
@@ -1004,6 +1016,34 @@
         <member name="M:Objo.Runtime.Abstractions.ObjoEventCoalescingNames.ToName(Objo.Runtime.Abstractions.ObjoEventCoalescing)">
             <summary>The canonical JSON name of one coalescing policy.</summary>
         </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoColour">
+            <summary>
+            An 8-bit-per-channel ARGB colour at a plugin call boundary. The generator
+            maps this SDK marker to Objo's built-in Colour type. Authors use it in
+            exported signatures instead of any UI framework's colour type, so packages
+            stay host-neutral; hosts convert between it and Objo's packed colour
+            representation.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoColour.#ctor(System.Byte,System.Byte,System.Byte,System.Byte)">
+            <summary>
+            An 8-bit-per-channel ARGB colour at a plugin call boundary. The generator
+            maps this SDK marker to Objo's built-in Colour type. Authors use it in
+            exported signatures instead of any UI framework's colour type, so packages
+            stay host-neutral; hosts convert between it and Objo's packed colour
+            representation.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoColour.#ctor(System.Byte,System.Byte,System.Byte)">
+            <summary>Creates an opaque colour from its 8-bit components.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoColour.ToArgb">
+            <summary>The colour as one packed ARGB value, alpha most significant, matching Objo's Colour representation.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoColour.FromArgb(System.Int64)">
+            <summary>Creates a colour from one packed ARGB value.</summary>
+            <param name="argb">Packed ARGB value with alpha as the most significant byte.</param>
+        </member>
         <member name="T:Objo.Runtime.Abstractions.ObjoRuntimeVersions">
             <summary>
             Version constants for the independent plugin contract domains.
@@ -1281,6 +1321,13 @@
         <member name="P:Objo.Runtime.Abstractions.ApiParameter.IsOptional">
             <summary>Whether Objo callers may omit the parameter.</summary>
         </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiParameter.IsAssigns">
+            <summary>
+            Whether this is the member's <c>Assigns</c> value parameter: Objo code
+            supplies it through assignment call syntax and cannot pass it directly.
+            Valid only on the last parameter of a method.
+            </summary>
+        </member>
         <member name="P:Objo.Runtime.Abstractions.ApiParameter.DefaultValue">
             <summary>Canonical default-value text for optional parameters.</summary>
         </member>
@@ -1340,6 +1387,14 @@
         </member>
         <member name="P:Objo.Runtime.Abstractions.ApiType.Name">
             <summary>The namespace-qualified Objo type name.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiType.BaseTypeName">
+            <summary>
+            The namespace-qualified Objo name of the nearest exported base class,
+            or null when the wrapper's CLR hierarchy exports no ancestor. Derived
+            exported types are assignable to their exported bases and satisfy
+            <c>IsA</c> against them.
+            </summary>
         </member>
         <member name="P:Objo.Runtime.Abstractions.ApiType.Description">
             <summary>Author description shown to Objo users.</summary>
@@ -1416,6 +1471,19 @@
         </member>
         <member name="M:Objo.Runtime.Abstractions.ApiMetadata.TryFromJson(System.String,Objo.Runtime.Abstractions.ApiMetadata@,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.PluginDiagnostic}@)">
             <summary>Parses API metadata, returning false with diagnostics on any error.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.ValidateBaseTypeCycles(System.Collections.Generic.List{Objo.Runtime.Abstractions.ApiType},Objo.Runtime.Abstractions.DiagnosticBuilder)">
+            <summary>
+            Rejects base chains that cycle within this document. A base may name a
+            type exported by another package, which cannot be resolved here; those
+            chains are validated when the whole plugin graph is composed.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMetadata.ValidateAssignsParameters(System.String,System.String,System.String,System.Collections.Generic.IReadOnlyList{Objo.Runtime.Abstractions.ApiParameter},Objo.Runtime.Abstractions.DiagnosticBuilder)">
+            <summary>
+            Assigns follows the language specification's rules: only a method's
+            final parameter may declare it, and it cannot be optional.
+            </summary>
         </member>
         <member name="M:Objo.Runtime.Abstractions.ApiMetadata.IsValidQualifiedName(System.String)">
             <summary>A dotted qualified name of identifier segments.</summary>
@@ -1889,6 +1957,12 @@
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetPicture(System.Int32)">
             <summary>Copies a host Picture into an owned, rendered pixel frame.</summary>
         </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetDateTime(System.Int32)">
+            <summary>Reads a DateTime argument as wall-clock ticks; no DateTimeKind travels with the value.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetColour(System.Int32)">
+            <summary>Reads a Colour argument.</summary>
+        </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetInstance(System.Int32)">
             <summary>Reads an opaque wrapper instance argument, or Nothing.</summary>
         </member>
@@ -1907,6 +1981,12 @@
         </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetBufferArray(System.Int32)">
             <summary>Reads a buffer array argument as owned copies of its elements.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetDateTimeArray(System.Int32)">
+            <summary>Reads a DateTime array argument as an owned copy.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetColourArray(System.Int32)">
+            <summary>Reads a Colour array argument as an owned copy.</summary>
         </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetInstanceArray``1(System.Int32)">
             <summary>Reads an array of opaque wrapper instances as an owned copy, or Nothing.</summary>
@@ -1929,6 +2009,12 @@
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetPictureResult(Objo.Runtime.Abstractions.ObjoPictureFrame)">
             <summary>Creates a host Picture from a frame on the owning VM turn.</summary>
         </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetDateTimeResult(System.DateTime)">
+            <summary>Returns a DateTime to Objo as wall-clock ticks; no DateTimeKind travels with the value.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetColourResult(Objo.Runtime.Abstractions.ObjoColour)">
+            <summary>Returns a Colour to Objo.</summary>
+        </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetIntegerArrayResult(System.Int64[])">
             <summary>Returns an Integer array to Objo.</summary>
         </member>
@@ -1943,6 +2029,12 @@
         </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetBufferArrayResult(System.Byte[][])">
             <summary>Returns a MemoryBlock array to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetDateTimeArrayResult(System.DateTime[])">
+            <summary>Returns a DateTime array to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetColourArrayResult(Objo.Runtime.Abstractions.ObjoColour[])">
+            <summary>Returns a Colour array to Objo.</summary>
         </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetInstanceArrayResult``1(``0[])">
             <summary>Returns an array of wrapped instances (or Nothing) to Objo.</summary>
