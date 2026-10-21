@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.3.0
+# Objo Plugin SDK 1.3.1
 
-Download the `plugin-sdk-1.3.0.zip` release from
+Download the `plugin-sdk-1.3.1.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
@@ -36,18 +36,29 @@ dotnet "$env:OBJO_PLUGIN_SDK_ROOT\tool\objo-plugin.dll" inspect out/org.example.
 
 `build` runs the wrapper build, generation, rebuild and packing in order,
 streams each step's output, and stops with the step named if it fails. It uses
-Release unless `plugin.json` sets `configuration`. Set `project` to a relative
+Release unless `plugin.json` sets `configuration`. Set `project` to the wrapper's
 `.csproj` path when needed; otherwise it finds the nearest directory containing
 one `.csproj`, starting beside `assembly` and walking up to `plugin.json`.
 Multiple projects in that directory require an explicit `project`. Keep
 `assembly` and `xmlDocumentation` aligned with the chosen configuration.
+An assembly outside the configuration directory requires an explicit `project`.
+If the wrapper project is external, include the locally generated registration
+file in its compilation.
 The separate `generate` and `pack` commands remain available for custom workflows.
 
 The `out/` package is the one file to give consumers. Replace the template
 identity and licence before distributing a new plugin, and root the visible
 namespace in your own brand or domain: the `Objo` namespace is reserved for
-use by Objo Studio / Pettet Industries. `plugin.json` paths
-are relative to that file and must stay within its directory. The supplied
+use by Objo Studio / Pettet Industries. Input paths in `plugin.json` may be
+absolute or relative to that file, including `.` and `..` segments and symbolic
+links. Native libraries, managed dependencies, data, licence files and dependency
+archives can remain in shared directories outside the wrapper project. The SDK
+copies their bytes to validated package paths, such as
+`runtimes/win-x64/native/libWord.dll` for a Windows native library.
+
+Generated `registration`, `apiMetadata` and `output` paths must stay beneath
+`plugin.json`, using forward-slash relative paths without dot segments or
+symbolic links. Package entry paths remain strictly validated. The supplied
 native image sample currently declares macOS arm64 assets only; build and test
 additional RIDs before adding them to its package input. The minimal
 `samples/NativeMaths` sample ships the exercised `osx-arm64` asset and both a
