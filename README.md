@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.3.1
+# Objo Plugin SDK 1.4.0
 
-Download the `plugin-sdk-1.3.1.zip` release from
+Download the `plugin-sdk-1.4.0.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by

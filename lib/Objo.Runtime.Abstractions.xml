@@ -1016,6 +1016,35 @@
         <member name="M:Objo.Runtime.Abstractions.ObjoEventCoalescingNames.ToName(Objo.Runtime.Abstractions.ObjoEventCoalescing)">
             <summary>The canonical JSON name of one coalescing policy.</summary>
         </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoCallable">
+            <summary>
+            An owned reference to a synchronous Objo method and its bound receiver.
+            Obtain one through an exported parameter supplied with AddressOf. Store it
+            until needed and dispose it when replaced or no longer needed.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoCallable.Invoke(System.Object[])">
+            <summary>
+            Invokes the captured method synchronously during a plugin call on its
+            owning execution thread. Arguments and results are Boolean (bool),
+            Integer (long or int), Double (double), String (string or null),
+            DateTime, or Colour (ObjoColour); a Sub returns null. The exact captured
+            signature is checked before entry. Worker-thread and out-of-turn calls
+            reject. An Objo failure throws PluginCallException with its message.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoCallable.Dispose">
+            <summary>Releases the method and receiver; idempotent and safe on any thread.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoCallable.Finalize">
+            <summary>Schedules release of an abandoned callable on its owning runtime.</summary>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.PluginCallException">
+            <summary>An Objo callback failed. Message contains the original Objo error message.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.PluginCallException.#ctor(System.String)">
+            <summary>Creates an exception carrying an Objo callback's error message.</summary>
+        </member>
         <member name="T:Objo.Runtime.Abstractions.ObjoColour">
             <summary>
             An 8-bit-per-channel ARGB colour at a plugin call boundary. The generator
@@ -1043,6 +1072,24 @@
         <member name="M:Objo.Runtime.Abstractions.ObjoColour.FromArgb(System.Int64)">
             <summary>Creates a colour from one packed ARGB value.</summary>
             <param name="argb">Packed ARGB value with alpha as the most significant byte.</param>
+        </member>
+        <member name="T:Objo.Runtime.Abstractions.ObjoObject">
+            <summary>
+            An opaque reference to an Objo value in the runtime that supplied it.
+            Store it and return it unchanged to preserve the original object's identity.
+            The handle exposes no Objo members and cannot be constructed by plugin code.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoObject.Dispose">
+            <summary>
+            Releases this handle's claim on the Objo value. Safe to call repeatedly
+            or from a native worker thread; runtime cleanup runs on the owning turn.
+            A disposed handle cannot be returned to Objo. An undisposed handle is
+            released when collected, or when its runtime shuts down.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ObjoObject.Finalize">
+            <summary>Schedules release of an abandoned native handle.</summary>
         </member>
         <member name="T:Objo.Runtime.Abstractions.ObjoRuntimeVersions">
             <summary>
@@ -1963,6 +2010,15 @@
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetColour(System.Int32)">
             <summary>Reads a Colour argument.</summary>
         </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetObject(System.Int32)">
+            <summary>Retains any Objo value as an opaque handle; Nothing becomes null.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetCallable(System.Int32)">
+            <summary>Retains a synchronous primitive-signature method reference, or null for Nothing.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetObjectArray(System.Int32)">
+            <summary>Reads owned opaque handles to array elements; Nothing elements become null.</summary>
+        </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetInstance(System.Int32)">
             <summary>Reads an opaque wrapper instance argument, or Nothing.</summary>
         </member>
@@ -2014,6 +2070,12 @@
         </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetColourResult(Objo.Runtime.Abstractions.ObjoColour)">
             <summary>Returns a Colour to Objo.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetObjectResult(Objo.Runtime.Abstractions.ObjoObject)">
+            <summary>Returns the original value of a live handle from this runtime, or Nothing for null.</summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetObjectArrayResult(Objo.Runtime.Abstractions.ObjoObject[])">
+            <summary>Returns the original values in a fresh array; null elements become Nothing.</summary>
         </member>
         <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetIntegerArrayResult(System.Int64[])">
             <summary>Returns an Integer array to Objo.</summary>
