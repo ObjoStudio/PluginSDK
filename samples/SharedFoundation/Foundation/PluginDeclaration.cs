@@ -2,7 +2,7 @@ using Objo.Runtime.Abstractions;
 
 [assembly: ObjoPlugin(
     "acme.foundation",
-    "1.0.0",
+    "1.4.2",
     Namespace = "Acme.Foundation",
     DisplayName = "Acme Foundation",
     Description = "Shared storage types for independently packaged plugins.",

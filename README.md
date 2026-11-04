@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.4.0
+# Objo Plugin SDK 1.4.2
 
-Download the `plugin-sdk-1.4.0.zip` release from
+Download the `plugin-sdk-1.4.2.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
@@ -14,6 +14,29 @@ The distribution contains:
 - `template/FirstMaths`: first plugin with methods, property, typed event,
   XML help, licence and package input.
 - `samples/`: minimal native, database, DOCX, native image and shared-foundation wrappers.
+
+## Ready-made sample plugins
+
+The versioned [release downloads](https://github.com/ObjoStudio/PluginSDK/releases)
+also offer the samples as individual `.objopackage` files. Import one with
+**File > Plugin Library**, install it, then add it to your project. No C#
+knowledge, .NET SDK or build step is needed. See the
+[consumer guide](https://docs.objo.dev/#/plugin-sdk/recipes?id=ready-made-sample-plugins)
+for installation and Objo usage.
+
+The download listing records platforms, minimum Studio version and SHA-256
+for each package. Documents and SharedFoundation are managed and portable;
+Database includes SQLite native assets for macOS, Windows and Linux on arm64
+and x64. NativeMaths and ImageEffects Tone currently support **macOS arm64 only**.
+Install `acme.foundation` before Creator or Mutator, and `acme.image.foundation`
+before Tone. Samples require Studio 26.10.1 or later and a matching Remote
+Debugger for remote execution.
+
+Prebuilt sample versions follow the SDK distribution version. Keep the exact
+download: saved solutions pin both version and hashes. Release sources use
+the same sample versions; the FirstMaths tutorial keeps version 1.0.0.
+
+## Build a plugin from source
 
 Set `OBJO_PLUGIN_SDK_ROOT` to the extracted distribution directory. From a
 copy of `template/FirstMaths`, run:
@@ -46,8 +69,8 @@ If the wrapper project is external, include the locally generated registration
 file in its compilation.
 The separate `generate` and `pack` commands remain available for custom workflows.
 
-The `out/` package is the one file to give consumers. Replace the template
-identity and licence before distributing a new plugin, and root the visible
+The produced `.objopackage` archive is the one file to give consumers. Replace
+the template identity and licence before distributing a new plugin, and root the visible
 namespace in your own brand or domain: the `Objo` namespace is reserved for
 use by Objo Studio / Pettet Industries. Input paths in `plugin.json` may be
 absolute or relative to that file, including `.` and `..` segments and symbolic
@@ -56,7 +79,14 @@ archives can remain in shared directories outside the wrapper project. The SDK
 copies their bytes to validated package paths, such as
 `runtimes/win-x64/native/libWord.dll` for a Windows native library.
 
-Generated `registration`, `apiMetadata` and `output` paths must stay beneath
+The archive `output` may be relative to `plugin.json`, including `.` and `..`
+segments, or an absolute path in the host operating system's syntax. For example,
+`"output": "../out/acme.graphics.png-1.0.0.objopackage"` writes to a
+shared folder beside the plugin's directory. Both `build` and `pack` create any
+missing output directories. Archive output paths must not pass through symbolic
+links.
+
+Generated `registration` and `apiMetadata` paths must stay beneath
 `plugin.json`, using forward-slash relative paths without dot segments or
 symbolic links. Package entry paths remain strictly validated. The supplied
 native image sample currently declares macOS arm64 assets only; build and test
