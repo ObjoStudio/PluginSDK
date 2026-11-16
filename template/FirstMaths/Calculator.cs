@@ -6,6 +6,9 @@ namespace Example.Maths;
 [ObjoExport]
 public sealed class Calculator
 {
+    /// <summary>The starting total for an empty calculator.</summary>
+    public const long DEFAULT_START = 0;
+
     /// <summary>Creates a calculator with an initial total.</summary>
     /// <param name="start">The starting value.</param>
     public Calculator(long start) => Total = start;

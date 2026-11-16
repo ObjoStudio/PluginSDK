@@ -131,7 +131,7 @@
         </member>
         <member name="T:Objo.Runtime.Abstractions.ObjoExportAttribute">
             <summary>
-            Exports a C# class or enum to Objo. Public constructors, methods, properties and
+            Exports a C# class or enum to Objo. Public constants, constructors, methods, properties and
             events are exported unless ignored. Supported parameter, return and
             property types are validated by the SDK generator; unsupported CLR
             signatures produce authoring diagnostics instead of runtime surprises.
@@ -1353,6 +1353,9 @@
         <member name="F:Objo.Runtime.Abstractions.ApiMemberKinds.Event">
             <summary>An exported typed notification event.</summary>
         </member>
+        <member name="F:Objo.Runtime.Abstractions.ApiMemberKinds.Constant">
+            <summary>An exported typed literal, shared and read-only.</summary>
+        </member>
         <member name="M:Objo.Runtime.Abstractions.ApiMemberKinds.IsKnown(System.String)">
             <summary>Whether the value is one of the known member kinds.</summary>
         </member>
@@ -1382,7 +1385,7 @@
             <summary>Author description shown to Objo users.</summary>
         </member>
         <member name="T:Objo.Runtime.Abstractions.ApiMember">
-            <summary>One exported member (method, property or event) of an exported type.</summary>
+            <summary>One exported member (method, property, constant or event) of an exported type.</summary>
         </member>
         <member name="P:Objo.Runtime.Abstractions.ApiMember.Name">
             <summary>The Objo-visible member name; constructors are named Constructor.</summary>
@@ -1391,7 +1394,7 @@
             <summary>One of the <see cref="T:Objo.Runtime.Abstractions.ApiMemberKinds"/> values.</summary>
         </member>
         <member name="P:Objo.Runtime.Abstractions.ApiMember.Parameters">
-            <summary>Declared parameters; empty for properties and events.</summary>
+            <summary>Declared parameters; empty for properties, constants and events.</summary>
         </member>
         <member name="P:Objo.Runtime.Abstractions.ApiMember.ReturnTypeName">
             <summary>The Objo return type name, or Nothing for void members.</summary>
@@ -1404,6 +1407,16 @@
         </member>
         <member name="P:Objo.Runtime.Abstractions.ApiMember.IsAsync">
             <summary>Whether the member's Objo result is a Task Awaited by callers.</summary>
+        </member>
+        <member name="P:Objo.Runtime.Abstractions.ApiMember.ConstantValue">
+            <summary>
+            Constants only: invariant literal text (Boolean, signed 64-bit Integer or
+            finite Double), or the exact String contents, including an empty string.
+            Stored as text to preserve the integer-only canonical JSON contract.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.ApiMember.GetConstantValue">
+            <summary>Decodes a constant's typed literal; throws for malformed metadata.</summary>
         </member>
         <member name="P:Objo.Runtime.Abstractions.ApiMember.Coalescing">
             <summary>

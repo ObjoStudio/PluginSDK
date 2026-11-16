@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.4.2
+# Objo Plugin SDK 1.5.0
 
-Download the `plugin-sdk-1.4.2.zip` release from
+Download the `plugin-sdk-1.5.0.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
@@ -102,8 +102,8 @@ type with no image-file encode or decode step — the natural way to expose a
 renderer, camera or emulator framebuffer. For tightly packed 8-bit RGB pixels,
 use the convenience factory:
 
-The factories below were added in SDK distribution 1.0.2. The SDK contract
-version remains `1.0.0`.
+The factories below were added in SDK distribution 1.0.2 with SDK contract
+version `1.0.0`.
 
 ```csharp
 using Objo.Runtime.Abstractions;
@@ -140,6 +140,23 @@ them: Objo Studio 26.10.1 or later. Remote execution also needs a matching
 Remote Debugger. Updating the SDK alone does not update Studio or application
 hosts. For older compatible plugin runtimes, construct the descriptor, buffer
 and frame explicitly instead of calling the factories.
+
+## Constants (SDK 1.5.0)
+
+Public C# `const` fields on an `[ObjoExport]` class become typed, shared,
+read-only Objo constants. The template's `Calculator.DEFAULT_START` is an
+`Integer` constant. Numeric range endpoints can use ordinary Integer or Double
+values, so a method can accept any intermediate value without an enum.
+Boolean and non-null String constants are supported too. XML summaries and
+`[ObjoDescription]` appear in Studio completion and hover help.
+
+SDK distribution 1.5.0 implements contract 1.1.0. Constant-bearing APIs need a
+Studio/runtime with contract 1.1.0 support; older 1.0.0 packages remain supported.
+Checked reads embed the literal, and generated runtime getters return the same
+value without running the wrapper's static initialiser. Updating the SDK alone
+does not update Studio or the Remote Debugger. See the
+[constant reference](https://docs.objo.dev/#/plugin-sdk/reference?id=constants)
+for supported CLR types, limits and conditional-compilation examples.
 
 ## Where the documentation lives
 
