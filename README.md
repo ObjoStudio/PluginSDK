@@ -1,6 +1,6 @@
-# Objo Plugin SDK 1.5.0
+# Objo Plugin SDK 1.6.0
 
-Download the `plugin-sdk-1.5.0.zip` release from
+Download the `plugin-sdk-1.6.0.zip` release from
 [ObjoStudio/PluginSDK](https://github.com/ObjoStudio/PluginSDK/releases), then
 extract it to a working folder. Authors need the .NET 10 SDK; plugin users need
 only Objo Studio and a `.objopackage` file. The SDK binaries are covered by
@@ -157,6 +157,25 @@ value without running the wrapper's static initialiser. Updating the SDK alone
 does not update Studio or the Remote Debugger. See the
 [constant reference](https://docs.objo.dev/#/plugin-sdk/reference?id=constants)
 for supported CLR types, limits and conditional-compilation examples.
+
+## Use List<T> signatures
+
+SDK distribution 1.6.0 maps supported C# `List<T>` parameters and results to
+typed Objo arrays. The FirstMaths template's
+`Calculator.RunningTotals(List<long> amounts)` takes `Integer()` and returns
+`Integer()` in Objo. Paste these statements into a Command Line project's
+Run event body.
+
+```objo
+Var calculator As New Example.Maths.Calculator(10)
+Var totals() As Integer = calculator.RunningTotals([4, -1, 3])
+Print(totals[0], totals[1], totals[2])
+Return 0
+```
+
+This prints `14 13 16`. The bridge copies the collection at each crossing.
+List-bearing packages require SDK contract 1.2.0 in Studio and the runtime.
+See the [list reference](https://docs.objo.dev/#/plugin-sdk/reference?id=list-signatures).
 
 ## Where the documentation lives
 

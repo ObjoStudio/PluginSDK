@@ -2158,6 +2158,18 @@
             this path.
             </summary>
         </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.GetList``1(System.Int32)">
+            <summary>
+            Copies an Objo array into a fresh list of a supported SDK element type.
+            A Nothing argument becomes an empty list. Requires SDK contract 1.2.0.
+            </summary>
+        </member>
+        <member name="M:Objo.Runtime.Abstractions.IPluginInvocation.SetListResult``1(System.Collections.Generic.List{``0})">
+            <summary>
+            Copies a list of a supported SDK element type into an Objo array.
+            A null list becomes Nothing. Requires SDK contract 1.2.0.
+            </summary>
+        </member>
         <member name="T:Objo.Runtime.Abstractions.ObjoMethodHandler">
             <summary>The delegate shape of every generated registration handler.</summary>
         </member>

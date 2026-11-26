@@ -1,6 +1,6 @@
 using Objo.Runtime.Abstractions;
 
-[assembly: ObjoPlugin("acme.mutator", "1.5.0",
+[assembly: ObjoPlugin("acme.mutator", "1.6.0",
     Namespace = "Acme.Mutator", DisplayName = "Acme Mutator",
     Description = "Changes a storage object created by another plugin.",
     Publisher = "Acme Tools Ltd", Licence = "MIT")]

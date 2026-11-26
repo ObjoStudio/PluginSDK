@@ -2,7 +2,7 @@ using Objo.Runtime.Abstractions;
 
 [assembly: ObjoPlugin(
     "acme.database",
-    "1.5.0",
+    "1.6.0",
     Namespace = "Acme.Database",
     DisplayName = "Acme Database",
     Description = "A SQLite provider wrapper with typed results, parameters and transactions.",

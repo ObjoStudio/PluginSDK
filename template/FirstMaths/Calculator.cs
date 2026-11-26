@@ -27,4 +27,17 @@ public sealed class Calculator
         Total = checked(Total + amount);
         ValueChanged?.Invoke(Total);
     }
+
+    /// <summary>Returns running totals after applying each amount in order.</summary>
+    /// <param name="amounts">The values to add, in order.</param>
+    public List<long> RunningTotals(List<long> amounts)
+    {
+        var totals = new List<long>(amounts.Count);
+        foreach (var amount in amounts)
+        {
+            Add(amount);
+            totals.Add(Total);
+        }
+        return totals;
+    }
 }
